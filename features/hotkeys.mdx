@@ -1,0 +1,56 @@
+---
+title: 'ClassicUO Web Hotkeys and Key Bindings — Full Guide'
+sidebarTitle: 'Hotkeys'
+description: 'Configure and manage key bindings in ClassicUO Web. Hotkeys are stored per game profile and can trigger actions, macros, and scripts.'
+---
+
+ClassicUO Web includes a full hotkey system that lets you bind keyboard shortcuts to any in-game action, macro, or script. Because hotkeys are stored as part of your [Game Profile](/features/game-profiles), every profile can have its own completely independent set of bindings — your PvP profile can have combat actions on one set of keys while your crafting profile uses a different layout entirely.
+
+## Opening the Hotkeys Window
+
+Access the Hotkeys window from the Web Assistant panel. It lists every bindable action available in the client, organised by category, with a search field at the top to quickly find what you need.
+
+## Binding a Key
+
+<Steps>
+  <Step title="Find the Action">
+    Open the Hotkeys window and browse the categories or use the search bar to locate the action you want to bind.
+  </Step>
+  <Step title="Click the Key Binding Field">
+    Click on the empty binding slot next to the action. The field will enter a "listening" state waiting for your input.
+  </Step>
+  <Step title="Press Your Key Combination">
+    Press the key combination you want to assign (e.g. `F1`, `Ctrl+H`, `Alt+1`). The binding is recorded immediately.
+  </Step>
+  <Step title="Save or Swap Profiles">
+    Hotkeys are saved automatically with your profile. To use a different layout, swap to another profile — your bindings for that profile load instantly.
+  </Step>
+</Steps>
+
+<Warning>
+  Hotkeys are **per-profile, not global**. A binding set in one profile will not appear in another. If you rely on specific bindings in all your profiles, you will need to set them in each one individually.
+</Warning>
+
+## Adding Hotkeys to the Action Bar
+
+Any hotkey can be pinned to the [Action Bar](/features/action-bar) for one-click access on screen. In the Hotkeys window, enable the **Action Bar** toggle next to a binding to add it. The slot will display the key combination as a visual reference.
+
+<Tip>
+  Bind a **swap profile** action to a key in each of your profiles so you can switch play-styles instantly without opening any menus. Set the binding in the Hotkeys window under the profile management category.
+</Tip>
+
+## Browser Hotkey Conflicts
+
+Some key combinations are reserved by Chrome and cannot be intercepted by the game:
+
+| Combination | Browser Action |
+|---|---|
+| `Ctrl+W` | Close tab |
+| `Ctrl+T` | New tab |
+| `Ctrl+N` | New window |
+| `Ctrl+L` | Address bar focus |
+| `F5` | Page refresh |
+
+<Note>
+  The classic UO `Ctrl+W` shortcut for last message is remapped to `Ctrl+Q` in ClassicUO Web for this reason. If you rely on browser-conflicting combinations, consider [installing the game as an app](/players/install-as-app) — the app window removes most browser UI and reduces hotkey conflicts.
+</Note>

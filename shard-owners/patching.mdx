@@ -1,0 +1,92 @@
+---
+title: 'Upload Custom Assets with the ClassicUO Web Patcher'
+sidebarTitle: 'Patching'
+description: 'Learn how to upload modified MUL and UOP game assets for your shard using the ClassicUO Web browser-based patching tool and CDN publishing workflow.'
+---
+
+ClassicUO Web includes a browser-based patching system specifically designed for shard owners who ship modified game assets. Instead of requiring players to manually download and install files, you upload your custom assets once through the Shard Management portal and the system takes care of the rest — generating efficient binary-delta patches, converting UOP files to MUL where appropriate, and publishing everything to the global CDN. Players receive only the chunks they are missing the next time they click **Play**.
+
+## Prerequisites
+
+Before you begin, make sure you have the following ready:
+
+- Access to the **Patching** section of your [Shard Management](https://play.classicuo.org/shard-management) portal (request access via a [shard application](https://play.classicuo.org/shard-management/shard-application) if you have not been approved yet)
+- Your UO installation directory containing the custom asset files you want to patch
+- An up-to-date version of **Chrome** (the patching tool uses the File System Access API, which requires a Chrome-like browser)
+
+## Patching steps
+
+<Steps>
+  <Step title="Open the Patching section">
+    Using Chrome, browse to the **Patching** section inside your [Shard Management](https://play.classicuo.org/shard-management) portal.
+  </Step>
+  <Step title="Select your UO directory">
+    Click **Open UO Directory** and choose your UO installation directory. Accept the browser permissions prompt that asks for read access to the folder.
+  </Step>
+  <Step title="Review the files to be patched">
+    The tool scans your directory and populates a **Files to be patched** list. Review it carefully:
+
+    - Move any files to the **Ignore List** that you do not want to patch.
+    - If UOP files appear automatically in the Ignore List, there is likely a MUL ↔ UOP conflict for the same asset.
+      - To change the preferred file type, click the **settings cog** icon and update your preference.
+      - Alternatively, remove the conflicting duplicate from your UO directory and re-scan.
+  </Step>
+  <Step title="Verify the client version">
+    Confirm that the **Client Version** field shows the correct version. The tool reads this automatically from your `client.exe` or from CUO's `settings.json`, but double-check it matches your shard's requirements.
+  </Step>
+  <Step title="Run the patcher">
+    Once everything looks correct, click the green **Patch** button to begin generating the delta patches locally in your browser.
+  </Step>
+  <Step title="Review the final manifest">
+    When patching completes, review the resulting file manifest. If any expected files are missing, check whether they ended up on the Ignore List or are absent from your UO directory.
+  </Step>
+  <Step title="Publish to the CDN">
+    Click **Publish** and select **Cloud**. This uploads your patches to the ClassicUO CDN and makes them immediately available to players.
+  </Step>
+  <Step title="Done">
+    Your custom assets are now live. Players will receive the updated content the next time they launch your shard through ClassicUO Web.
+  </Step>
+</Steps>
+
+## How the patches work
+
+### Binary-delta compression with VCDIFF
+
+The patching system generates [binary-delta patches](https://en.wikipedia.org/wiki/Binary_delta_compression) using the [VCDIFF](https://en.wikipedia.org/wiki/VCDIFF) algorithm against a known baseline set of vanilla UO files. Only the differences between the baseline and your custom files are stored and transmitted, which results in dramatically smaller download sizes for players.
+
+### UOP → MUL automatic conversion
+
+With the exception of `Animation*.uop` files, the patcher automatically converts UOP-format assets to their MUL equivalent before generating deltas. UOP files use internal compression that produces very large patch deltas; converting to MUL first reduces patch sizes substantially — in practice the difference can be as large as **90 MB down to 2 MB** for the same asset.
+
+### Livepatching (no full file writes)
+
+During gameplay, patches are applied in a random-access mode called **livepatching**. The fully reconstructed UO asset is never written to disk — the client reads patched data on demand directly from the stored deltas. This saves significant disk space for players, particularly on shards with many modified files.
+
+### Content deduplication across shards
+
+All content on the CDN is deduplicated globally. If two shards ship patches for the same underlying file, a player who has already downloaded that content for one shard will not download it again for the other.
+
+## Troubleshooting
+
+<Accordion title="The web client gets stuck during loading (e.g. at 'Animations')">
+  This usually means the patcher received incorrect or incomplete files. To diagnose:
+
+  1. Manually copy **only** the files that appear in your patch manifest's `files` array into a fresh empty folder.
+  2. Launch the **desktop ClassicUO** client pointed at that folder.
+  3. If desktop CUO loads correctly with just those files, the issue is likely a mismatch between what you patched and what the web client expects — ask for help in the [#for-shard-owners](https://discord.com/channels/458277173208547350/1002460906862690334) Discord channel.
+  4. If desktop CUO also fails to load, the asset files themselves are the problem. Verify you are using the correct versions and that all required files are present.
+</Accordion>
+
+<Accordion title="I see MUL patches in the manifest but I provided UOP files">
+  This is expected and intentional. The patcher automatically converts your UOP assets (except `Animation*.uop` files) to MUL before generating the VCDIFF patches. UOP's internal compression causes extremely large patch deltas; the MUL conversion brings those sizes down dramatically. You do not need to take any action — the output is correct.
+</Accordion>
+
+<Accordion title="'File is being used by another process' error">
+  This error almost always means your file list contains **both** the UOP and MUL version of the same asset — for example `art.mul` and `artLegacyMUL.uop` simultaneously. The patcher cannot process two representations of the same file at the same time.
+
+  **Fix:** Remove one of the two conflicting files from your UO directory, or move it to the Ignore List, and re-run the patcher. Use only one format per asset.
+</Accordion>
+
+<Tip>
+  After publishing, ask a test player (or use a secondary account) to connect to your shard fresh from a browser that has never loaded your content. This confirms the CDN is serving all patches correctly and that nothing was accidentally left on the Ignore List.
+</Tip>

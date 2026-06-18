@@ -1,0 +1,142 @@
+{
+  "projectType": "saas",
+  "projectName": "ClassicUO Web",
+  "projectDescription": "A browser-based Ultima Online client built on WebAssembly that lets players join free shards instantly without installing anything, with a built-in web assistant, scripting engine, and modding SDK for shard owners.",
+  "theme": "palm",
+  "primaryColor": "#4184ed",
+  "lightColor": "#8ec7fb",
+  "darkColor": null,
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "players/quickstart",
+              "players/faq",
+              "players/faq-sanctioned"
+            ]
+          },
+          {
+            "group": "Features",
+            "pages": [
+              "features/game-profiles",
+              "features/chat",
+              "features/grid-containers",
+              "features/autoloot",
+              "features/action-bar",
+              "features/hotkeys",
+              "features/tooltips",
+              "features/game-options"
+            ]
+          },
+          {
+            "group": "Troubleshooting",
+            "pages": [
+              "players/troubleshooting",
+              "players/troubleshooting-performance",
+              "players/troubleshooting-storage",
+              "players/troubleshooting-browser-test",
+              "players/troubleshooting-dedicated-browser",
+              "players/troubleshooting-gaming-vpn",
+              "players/install-as-app"
+            ]
+          },
+          {
+            "group": "Shard Owners",
+            "pages": [
+              "shard-owners/overview",
+              "shard-owners/patching",
+              "shard-owners/shard-rules",
+              "shard-owners/faq"
+            ]
+          },
+          {
+            "group": "Modding",
+            "pages": [
+              "modding/overview",
+              "modding/quickstart",
+              "modding/api-reference",
+              "modding/web-gumps",
+              "modding/types"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Scripting API",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "scripting/introduction",
+              "scripting/globals"
+            ]
+          },
+          {
+            "group": "Namespaces",
+            "pages": [
+              "scripting/namespaces/player",
+              "scripting/namespaces/client",
+              "scripting/namespaces/mobile",
+              "scripting/namespaces/item",
+              "scripting/namespaces/target",
+              "scripting/namespaces/journal",
+              "scripting/namespaces/gump",
+              "scripting/namespaces/world-map"
+            ]
+          },
+          {
+            "group": "Functions & Enums",
+            "pages": [
+              "scripting/functions",
+              "scripting/enums"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Play Ultima Online directly in Chrome via WebAssembly — no installation required",
+    "Automatic content delivery via delta-binary patching (VCDIFF) and global CDN",
+    "Built-in Web Assistant with React UI for game options, hotkeys, scripting, and item management",
+    "Modern Grid Containers with auto-sorting, search, and resizable views",
+    "TypeScript / Blockly scripting engine sandboxed per shard rules",
+    "Cloud-synced game profiles, macros, and assistant state across devices",
+    "Shard Rules system for server owners to control and restrict client features",
+    "Web Modding SDK (@classicuo/modding) for building custom React-based UI overlays",
+    "Global WebSocket game proxy (30+ regions) replacing direct TCP connections",
+    "Discord-based authentication with shard-level identity via WebIdentity packet"
+  ],
+  "publicApiSurface": [
+    "addEventListener(event, fn, once?) — subscribe to game events (journalEntry, gumpUpdate, playerCreated, etc.)",
+    "removeEventListener(listenerId) — unsubscribe from an event",
+    "client.say(message, hue?) — send chat message as the player",
+    "client.sysMsg(message, hue?) — display system message in chat",
+    "client.headMsg(message, serial, hue?) — display overhead message",
+    "client.castSpell(id) — cast a spell by ID",
+    "client.useSkill(id) — use a skill by ID",
+    "client.equipItem(serial) / unequipItem(serial) — equip/unequip items",
+    "client.attack(serial) — attack a target",
+    "client.fly() / client.land() — toggle gargoyle flight",
+    "player.* — async getters for all player stats, resistances, equipped items",
+    "setShardRules(flags: ShardRules) — apply shard-level feature rules",
+    "addExtraPlayerBody(graphicId, gumpArtId, animId, isFemale, race) — register custom player body",
+    "sendWebGumpResponse(serial, serverId, data) — send response to a WebGump",
+    "closeWebGump(serial, serverId) — close a WebGump",
+    "mountInterfaceRoot(App: React.FC) — mount a React mod overlay into the game UI",
+    "useWebGump<T>(type, onUpdate?) — React hook for handling WebGump lifecycle",
+    "View — draggable/resizable React container component for mod UIs",
+    "ClientManifest / SourceManifest — Zod-validated shard content manifest schemas",
+    "ShardRules / shardRulesSchema — Zod schema for shard feature restriction rules",
+    "GameProfile / profileSchema — Zod schema for all client game options",
+    "Shard / shardSchema — Zod schema for shard registration metadata",
+    "sleep(ms) — pause script execution",
+    "log(...args) — write to scripting console",
+    "exit() — terminate script early"
+  ]
+}

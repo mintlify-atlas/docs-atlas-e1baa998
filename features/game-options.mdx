@@ -1,0 +1,95 @@
+---
+title: 'Game Options and Settings Reference — ClassicUO Web'
+sidebarTitle: 'Game Options'
+description: 'ClassicUO Web replaces the standard options gump with a modern web-based settings panel. All options are saved per game profile and sync across devices.'
+---
+
+ClassicUO Web replaces the standard UO options gump with a fully web-based settings panel. The redesigned interface makes it easier to find and adjust the options you need — settings are grouped into categories with labels and descriptions rather than the packed layout of the original client. Because all options are stored as part of your [Game Profile](/features/game-profiles), they automatically sync to the cloud and load on any device you log in from.
+
+<Tip>
+  Game options are tied to your game profile and will be synchronised across devices. Swapping profiles instantly restores all the options for that layout.
+</Tip>
+
+## Opening Game Options
+
+Press **Alt+O** inside the game, or click the gear icon in the top bar. The web-based options window opens as an overlay.
+
+## Option Categories
+
+### Video
+
+Controls the game viewport, rendering, and performance settings.
+
+| Setting | Description |
+|---|---|
+| Maximum FPS | Cap the frame rate to match your monitor's refresh rate. Setting this too high wastes GPU resources. |
+| Game Loop Scheduler | Set to **Immediate** for the most responsive input handling. |
+| Zoom / Scale | Adjust the viewport zoom level and whether it's remembered between sessions. |
+| Shadows | Toggle world shadows and adjust shadow quality. |
+| Roofs, Trees, Vegetation | Show or hide roofs, convert trees to stumps, or hide vegetation. |
+| Circle of Transparency | Enable a transparency circle around the player to see under trees and roofs. |
+| XBR Scaling | Enables the XBR pixel-art upscaling algorithm for smoother sprites. |
+
+### Sound
+
+Controls audio volume and which sounds play.
+
+| Setting | Description |
+|---|---|
+| Sound Volume | Overall sound effects volume (0–100). |
+| Music Volume | Background music volume (0–100). |
+| Footstep Sounds | Toggle walking/running sound effects. |
+| Combat Music | Toggle music triggered by entering combat. |
+| Background Audio | Whether sounds play when the game window is not focused. |
+
+### Chat & Journal
+
+Controls message display, colours, and the journal.
+
+| Setting | Description |
+|---|---|
+| Chat Font | Font used for overhead speech messages. |
+| Speech/Whisper/Emote Hue | Colour (hue) for different speech types. |
+| Party/Guild/Alliance Hue | Colour for messages from party, guild, and ally channels. |
+| Ignore Alliance/Guild Messages | Suppress alliance or guild channel messages entirely. |
+| Save Journal to File | Write the journal to a local file for review outside the game. |
+
+### Gameplay
+
+Covers movement, interactions, containers, and targeting behaviour.
+
+| Setting | Description |
+|---|---|
+| Always Run | Character always runs regardless of cursor distance. |
+| Auto Open Doors | Automatically opens doors when walking into them. |
+| Auto Open Corpses | Opens corpses automatically when in range. |
+| Smooth Movement | Interpolates movement for a smoother visual experience. |
+| Hold Shift to Split Stack | Require Shift to be held when splitting item stacks. |
+| Pathfinding | Enable automatic pathfinding when double-clicking the ground. |
+| Container Scale | Scale the size of containers and items within them. |
+
+### Experimental
+
+The **Experimental** tab contains opt-in features that change significant parts of the UI. Each feature must be explicitly enabled.
+
+<CardGroup cols={2}>
+  <Card title="Modern Chat Gump" icon="comments" href="/features/chat">
+    Replaces the classic UO journal with a tabbed, filterable chat window.
+  </Card>
+  <Card title="Modern Grid Containers" icon="grid" href="/features/grid-containers">
+    Replaces slot-based containers with an auto-sorting, resizable grid view.
+  </Card>
+  <Card title="Modern Loot Gump" icon="sack" href="/features/autoloot">
+    Enables the Loot Agent's modern corpse-looting interface.
+  </Card>
+  <Card title="Action Bar" icon="bolt" href="/features/action-bar">
+    Adds an MMO-style action bar for one-click hotkeys and script execution.
+  </Card>
+  <Card title="Modern Tooltips" icon="info" href="/features/tooltips">
+    Replaces classic UO tooltips with rich browser-rendered overlays.
+  </Card>
+</CardGroup>
+
+## Shard-Controlled Options
+
+Shard owners can use [Shard Rules](/shard-owners/shard-rules) to restrict which game options players can change and to set default values. If an option appears greyed out with a message explaining it's been disabled, this is intentional — the shard owner has locked that setting. Options locked by the shard cannot be changed from the options panel.

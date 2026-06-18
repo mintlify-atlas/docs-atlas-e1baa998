@@ -1,0 +1,70 @@
+---
+title: 'ClassicUO Web — Play Ultima Online in Your Browser'
+sidebarTitle: 'Introduction'
+description: 'ClassicUO Web is a free, browser-based Ultima Online client powered by WebAssembly — no installs needed, just open Chrome and play.'
+---
+
+ClassicUO Web is the browser-based version of the open-source [ClassicUO](https://github.com/ClassicUO/ClassicUO) Ultima Online client, running entirely in your browser via WebAssembly. It is **free to use** — the team receives no monetary compensation and covers hosting costs out of pocket. If you'd like to support the project, [donations via Patreon](https://www.patreon.com/classicuo) are welcomed but never required.
+
+## Highlights
+
+ClassicUO Web removes the friction traditionally associated with getting into Ultima Online. Here's what makes it stand out:
+
+- **Instant play** — browse the server list and go from a new tab to in-game in seconds.
+- **No file management** — game files are automatically fetched, cached, and kept up to date.
+- **Quality-of-life features** — modern UI elements, scripting, chat, grid containers, auto-loot, and more, all built with web technologies.
+- **Minimal requirements** — only a Chrome-based browser and a few gigabytes of free disk space.
+- **Near-native performance** — achieves speeds close to a native desktop ClassicUO installation.
+
+## Philosophy
+
+ClassicUO Web aims to bring Ultima Online the same kind of accessibility that titles like Old School RuneScape enjoy — a one-click experience that lowers the barrier for new players while respecting the depth veterans love.
+
+The project's goals include:
+
+- Improving the accessibility and visibility of UO free shards with a "one-click" play experience so new players can join a shard in under a few minutes.
+- Overhauling the outdated UO user experience with quality-of-life features and sleek interfaces leveraging modern web technologies.
+- Helping new players manage the complex learning curve with systems and mechanics that can otherwise be overwhelming.
+- Removing the burden of keeping a client, files, and assistant up to date from players entirely.
+- Providing a consistent client setup that follows players across any device via cloud-syncing.
+- Giving shard owners better integration tools for creating unique experiences via web-based modding.
+- Making the game more robust against cheaters through an always-up-to-date, unified client.
+
+## How It Works
+
+### The Client
+
+At its core, ClassicUO Web is the C# desktop ClassicUO client compiled into WebAssembly using a custom build process and many necessary workarounds in C#/JS to make it viable in a browser. Around that core, the team has built a suite of supporting systems: runtime interop, backend APIs, global CDNs, user authentication, asset management, and shard management tooling.
+
+### Web Assistant
+
+The Web Assistant sits as a UI layer on top of the client, built with React components. It replaces some native client functionality — such as managing game options and hotkeys — and adds quality-of-life features for item management, looting, equipment, and chat. It also provides extensive automation support via a built-in sandbox that accepts both visual programming scripts ([Blockly](https://developers.google.com/blockly)) and advanced code scripts ([TypeScript](https://www.typescriptlang.org/)). Shard owners may restrict or disable these scripting features according to their rules.
+
+### Content & Patching
+
+The system uses content-addressable delta-binary diffs, as described in the [shard owner patching guide](/shard-owners/patching). Content is delivered in chunks via a global CDN and persisted in the user's browser storage using the [Origin Private File System](https://web.dev/articles/origin-private-file-system) APIs. First-time players typically reach the login screen in under a few minutes depending on their connection speed.
+
+### Network Proxy
+
+Standard UO clients connect to shards over a direct TCP connection, which browser security standards do not permit. ClassicUO Web works around this with a WebSocket proxy (GameProxy) that acts as a forwarding hop to the shard. The GameProxy is distributed across 30+ locations worldwide on an anycast address, minimising latency for players everywhere.
+
+### Shard Management
+
+Shard staff have access to a dedicated Shard Management application where they can manage patches and content, update shard details, and customise their listing on the Server List to attract new players.
+
+## Explore the Docs
+
+<CardGroup cols={2}>
+  <Card title="Players" icon="gamepad" href="/players/quickstart">
+    New to ClassicUO Web? Start here — system requirements, getting into a server, and common questions answered.
+  </Card>
+  <Card title="Shard Owners" icon="server" href="/shard-owners/overview">
+    Everything you need to add your shard to the server list, configure patching, and customise the player experience.
+  </Card>
+  <Card title="Scripting" icon="code" href="/scripting/introduction">
+    Automate gameplay with TypeScript or Blockly visual scripts using the built-in Web Assistant sandbox.
+  </Card>
+  <Card title="Modding" icon="puzzle-piece" href="/modding/overview">
+    Build web-based gumps and UI extensions that integrate natively into the ClassicUO Web client.
+  </Card>
+</CardGroup>

@@ -1,0 +1,472 @@
+---
+title: 'ClassicUO Modding API Reference: Events and Player'
+sidebarTitle: 'API Reference'
+description: 'Complete reference for all @classicuo/modding exports: addEventListener, client actions, player properties, ShardRules, and WebGump helpers.'
+---
+
+All symbols documented on this page are exported from the `@classicuo/modding` package entry point (`src/api/index.ts`). They are injected into the mod sandbox as globals by the ClassicUO Web runtime and re-exported with full TypeScript types by the SDK.
+
+```typescript
+import {
+  addEventListener,
+  removeEventListener,
+  addExtraPlayerBody,
+  setShardRules,
+  sendWebGumpResponse,
+  closeWebGump,
+  client,
+  player
+} from '@classicuo/modding';
+```
+
+---
+
+## Event Functions
+
+### `addEventListener`
+
+Registers a listener for a named game event. Returns a numeric listener ID that you must keep to remove the listener later.
+
+```typescript
+addEventListener<T extends EventNames<EventMap>>(
+  event: T,
+  fn: EventListener<EventMap, T>,
+  once?: boolean
+): number
+```
+
+<ParamField path="event" type="string" required>
+  The event name. Must be one of the keys in `EventMap` (see table below).
+</ParamField>
+
+<ParamField path="fn" type="function" required>
+  Callback function. The argument type is inferred from the `EventMap` entry for the given event name.
+</ParamField>
+
+<ParamField path="once" type="boolean">
+  When `true`, the listener automatically removes itself after firing once. Defaults to `false`.
+</ParamField>
+
+**Returns:** `number` — a listener ID used with `removeEventListener`.
+
+#### EventMap Reference
+
+| Event name | Callback signature | Description |
+|---|---|---|
+| `journalEntry` | `(ev: JournalEntry) => void` | Fires for every new journal line. |
+| `playerCreated` | `(ev: any) => void` | Fires when the player object is first created (on login). |
+| `worldClear` | `(ev: any) => void` | Fires when the world state is cleared (logout / server transition). |
+| `profileLoaded` | `(ev: any) => void` | Fires when the player's game profile has been loaded. |
+| `gumpUpdate` | `(ev: GumpUpdateEvent) => void` | Fires on any WebGump update from the server. |
+| `gumpClose` | `(ev: GumpCloseEvent) => void` | Fires when any WebGump is closed. |
+| `` `webGump:${type}:update` `` | `(ev: GumpUpdateEvent) => void` | Type-scoped update event for a specific WebGump type. |
+| `` `webGump:${type}:close` `` | `(ev: GumpUpdateEvent) => void` | Type-scoped close event for a specific WebGump type. |
+
+#### `JournalEntry` Interface
+
+```typescript
+interface JournalEntry {
+  serial: number;
+  text: string;
+  name: string;
+  hue: number;
+  type:
+    | 'Regular' | 'System' | 'Emote' | 'Limit3Spell'
+    | 'Label' | 'Focus' | 'Whisper' | 'Yell' | 'Spell'
+    | 'Guild' | 'Alliance' | 'Command' | 'Encoded' | 'Party';
+  font: number;
+  textType: 'CLIENT' | 'SYSTEM' | 'OBJECT' | 'GUILD_ALLY';
+  unicode: boolean;
+  time: string;
+  hueArgb: number;
+}
+```
+
+**Example:**
+
+```typescript
+import { addEventListener, removeEventListener } from '@classicuo/modding';
+import { useEffect } from 'react';
+
+// Inside a React component
+useEffect(() => {
+  const id = addEventListener('journalEntry', (ev) => {
+    if (ev.type === 'System') {
+      console.log('System message:', ev.text);
+    }
+  });
+  return () => removeEventListener(id);
+}, []);
+```
+
+---
+
+### `removeEventListener`
+
+Removes a previously registered listener by its ID.
+
+```typescript
+removeEventListener(listenerId: number): void
+```
+
+<ParamField path="listenerId" type="number" required>
+  The numeric ID returned by a previous `addEventListener` call.
+</ParamField>
+
+<Warning>
+  Always remove listeners in React `useEffect` cleanup functions (i.e. the returned teardown callback) to prevent memory leaks when components unmount.
+</Warning>
+
+---
+
+## Player Body & Shard Configuration
+
+### `addExtraPlayerBody`
+
+Registers an additional player body graphic mapping. Use this to extend the client's body table with custom race or gender variants specific to your shard.
+
+```typescript
+addExtraPlayerBody(
+  graphicId: number,
+  gumpArtId: number,
+  animId: number,
+  isFemale: boolean,
+  race: number,
+  copyEquipConv?: boolean
+): void
+```
+
+<ParamField path="graphicId" type="number" required>
+  The body graphic ID to register.
+</ParamField>
+
+<ParamField path="gumpArtId" type="number" required>
+  The gump art ID used to represent this body in paper doll and character selection UIs.
+</ParamField>
+
+<ParamField path="animId" type="number" required>
+  The animation ID linked to this body graphic.
+</ParamField>
+
+<ParamField path="isFemale" type="boolean" required>
+  Whether this body represents a female character.
+</ParamField>
+
+<ParamField path="race" type="number" required>
+  Numeric race identifier (e.g. `1` = Human, `2` = Elf, `3` = Gargoyle).
+</ParamField>
+
+<ParamField path="copyEquipConv" type="boolean">
+  When `true`, equipment conversion data is copied from the base body. Defaults to `false`.
+</ParamField>
+
+---
+
+### `setShardRules`
+
+Applies a `ShardRules` configuration object at runtime. Returns `true` if the rules were applied successfully, `false` otherwise.
+
+```typescript
+setShardRules(flags: ShardRules): boolean
+```
+
+<ParamField path="flags" type="ShardRules" required>
+  A `ShardRules` object validated by `shardRulesSchema`. Controls scripting permissions, feature flags, and game option overrides. See the [Types](/modding/types) page for the full schema.
+</ParamField>
+
+**Example:**
+
+```typescript
+import { setShardRules } from '@classicuo/modding';
+
+setShardRules({
+  web: {
+    scripting: 'enabled',
+    features: {
+      dressAgent: true,
+      friends: false
+    }
+  }
+});
+```
+
+---
+
+## WebGump Helpers
+
+### `sendWebGumpResponse`
+
+Sends data back to the server for an open WebGump identified by its serial and server ID.
+
+```typescript
+sendWebGumpResponse(serial: number, serverId: number, data: string | Object): void
+```
+
+<ParamField path="serial" type="number" required>
+  The serial number of the gump, as received in the `GumpUpdateEvent`.
+</ParamField>
+
+<ParamField path="serverId" type="number" required>
+  The server-side gump ID, as received in the `GumpUpdateEvent`.
+</ParamField>
+
+<ParamField path="data" type="string | Object" required>
+  The payload to send back to the server. Objects are serialized to JSON automatically.
+</ParamField>
+
+---
+
+### `closeWebGump`
+
+Sends a close signal to the server for an open WebGump.
+
+```typescript
+closeWebGump(serial: number, serverId: number): void
+```
+
+<ParamField path="serial" type="number" required>
+  The serial number of the gump to close.
+</ParamField>
+
+<ParamField path="serverId" type="number" required>
+  The server-side gump ID to close.
+</ParamField>
+
+<Tip>
+  Prefer the `useWebGump` hook's `send()` and `close()` convenience methods in React components — they automatically use the correct `serial` and `serverId` from the current gump context. See the [WebGumps](/modding/web-gumps) page.
+</Tip>
+
+---
+
+## `client` Object
+
+The `client` object provides async methods to issue actions as the player. All methods return `Promise<null>` (except `castSpell`, which returns `null` synchronously).
+
+```typescript
+import { client } from '@classicuo/modding';
+```
+
+### Methods
+
+<ParamField path="client.castSpell" type="(id: number) => null">
+  Casts a spell by its numeric spell ID. This is the only synchronous client method.
+</ParamField>
+
+<ParamField path="client.say" type="(message: string, hue?: number) => Promise<null>">
+  Sends a chat message as your player with an optional hue override. Can be used to send server commands, e.g. `client.say('[help')`.
+</ParamField>
+
+<ParamField path="client.sysMsg" type="(message: string, hue?: number) => Promise<null>">
+  Displays a local system message in the client's journal and chat. The message is not sent to the server.
+</ParamField>
+
+<ParamField path="client.headMsg" type="(message: string, serial: number, hue?: number) => Promise<null>">
+  Displays a floating overhead message above the entity with the given `serial`.
+</ParamField>
+
+<ParamField path="client.useSkill" type="(id: number) => Promise<null>">
+  Activates a skill by its numeric skill ID.
+</ParamField>
+
+<ParamField path="client.equipItem" type="(serial: number) => Promise<null>">
+  Equips an item with the given serial number.
+</ParamField>
+
+<ParamField path="client.unequipItem" type="(serial: number) => Promise<null>">
+  Unequips an item with the given serial number.
+</ParamField>
+
+<ParamField path="client.attack" type="(serial: number) => Promise<null>">
+  Initiates an attack against the entity with the given serial number.
+</ParamField>
+
+<ParamField path="client.fly" type="() => Promise<null>">
+  Triggers the fly action (Gargoyle characters).
+</ParamField>
+
+<ParamField path="client.land" type="() => Promise<null>">
+  Triggers the land action (Gargoyle characters).
+</ParamField>
+
+**Example:**
+
+```typescript
+import { client } from '@classicuo/modding';
+
+// Send a server command
+await client.say('[props');
+
+// Display a local notification
+await client.sysMsg('Bandage applied!', 68);
+
+// Cast a spell by ID
+client.castSpell(1);
+```
+
+---
+
+## `player` Object
+
+The `player` object exposes the local player's stats and equipment as async getters. Each getter returns a `Promise` that resolves with the current value from the game engine.
+
+```typescript
+import { player } from '@classicuo/modding';
+```
+
+### Core Stats
+
+| Getter | Return type | Description |
+|---|---|---|
+| `player.name` | `Promise<string>` | Character name. |
+| `player.hits` | `Promise<number>` | Current hit points. |
+| `player.hitsMax` | `Promise<number>` | Maximum hit points. |
+| `player.mana` | `Promise<number>` | Current mana. |
+| `player.manaMax` | `Promise<number>` | Maximum mana. |
+| `player.stamina` | `Promise<number>` | Current stamina. |
+| `player.staminaMax` | `Promise<number>` | Maximum stamina. |
+| `player.gold` | `Promise<number>` | Gold in backpack. |
+| `player.strength` | `Promise<number>` | Strength stat. |
+| `player.dexterity` | `Promise<number>` | Dexterity stat. |
+| `player.intelligence` | `Promise<number>` | Intelligence stat. |
+| `player.weight` | `Promise<number>` | Current carried weight. |
+| `player.weightMax` | `Promise<number>` | Maximum carry weight. |
+| `player.luck` | `Promise<number>` | Luck stat. |
+| `player.followers` | `Promise<number>` | Current follower count. |
+| `player.followersMax` | `Promise<number>` | Maximum allowed followers. |
+| `player.tithingPoints` | `Promise<number>` | Tithing points (Paladin). |
+| `player.hunger` | `Promise<number>` | Hunger level. |
+| `player.shortTermMurders` | `Promise<number>` | Short-term murder count. |
+| `player.longTermMurders` | `Promise<number>` | Long-term murder count. |
+
+### Resistances
+
+| Getter | Return type |
+|---|---|
+| `player.physicalResistance` | `Promise<number>` |
+| `player.fireResistance` | `Promise<number>` |
+| `player.coldResistance` | `Promise<number>` |
+| `player.poisonResistance` | `Promise<number>` |
+| `player.energyResistance` | `Promise<number>` |
+| `player.maxPhysicResistence` | `Promise<number>` |
+| `player.maxFireResistence` | `Promise<number>` |
+| `player.maxColdResistence` | `Promise<number>` |
+| `player.maxPoisonResistence` | `Promise<number>` |
+| `player.maxEnergyResistence` | `Promise<number>` |
+
+### Combat & Skill Modifiers
+
+| Getter | Return type |
+|---|---|
+| `player.damageMin` | `Promise<number>` |
+| `player.damageMax` | `Promise<number>` |
+| `player.damageIncrease` | `Promise<number>` |
+| `player.hitChanceIncrease` | `Promise<number>` |
+| `player.defenseChanceIncrease` | `Promise<number>` |
+| `player.maxDefenseChanceIncrease` | `Promise<number>` |
+| `player.swingSpeedIncrease` | `Promise<number>` |
+| `player.spellDamageIncrease` | `Promise<number>` |
+| `player.fasterCasting` | `Promise<number>` |
+| `player.fasterCastRecovery` | `Promise<number>` |
+| `player.lowerManaCost` | `Promise<number>` |
+| `player.lowerReagentCost` | `Promise<number>` |
+| `player.enhancePotions` | `Promise<number>` |
+| `player.reflectPhysicalDamage` | `Promise<number>` |
+
+### Regeneration & Increases
+
+| Getter | Return type |
+|---|---|
+| `player.hitPointsRegeneration` | `Promise<number>` |
+| `player.manaRegeneration` | `Promise<number>` |
+| `player.staminaRegeneration` | `Promise<number>` |
+| `player.hitPointsIncrease` | `Promise<number>` |
+| `player.manaIncrease` | `Promise<number>` |
+| `player.maxManaIncrease` | `Promise<number>` |
+| `player.maxHitPointsIncrease` | `Promise<number>` |
+| `player.staminaIncrease` | `Promise<number>` |
+| `player.maxStaminaIncrease` | `Promise<number>` |
+| `player.strengthIncrease` | `Promise<number>` |
+| `player.dexterityIncrease` | `Promise<number>` |
+| `player.intelligenceIncrease` | `Promise<number>` |
+| `player.statsCap` | `Promise<number>` |
+
+### Status Flags
+
+| Getter | Return type | Description |
+|---|---|---|
+| `player.isPoisoned` | `Promise<number>` | Non-zero if the player is poisoned. |
+| `player.isYellowHits` | `Promise<number>` | Non-zero if the player's health bar is yellow. |
+| `player.deathScreenTimer` | `Promise<number>` | Remaining death screen timer in ms. |
+
+### `player.equippedItems`
+
+Returns a snapshot of all equipped item slots.
+
+```typescript
+player.equippedItems: Promise<{
+  shirt?: EquippedItem;
+  pants?: EquippedItem;
+  shoes?: EquippedItem;
+  legs?: EquippedItem;
+  torso?: EquippedItem;
+  ring?: EquippedItem;
+  talisman?: EquippedItem;
+  bracelet?: EquippedItem;
+  face?: EquippedItem;
+  arms?: EquippedItem;
+  gloves?: EquippedItem;
+  skirt?: EquippedItem;
+  tunic?: EquippedItem;
+  robe?: EquippedItem;
+  necklace?: EquippedItem;
+  hair?: EquippedItem;
+  waist?: EquippedItem;
+  beard?: EquippedItem;
+  earrings?: EquippedItem;
+  oneHanded?: EquippedItem;
+  helmet?: EquippedItem;
+  twoHanded?: EquippedItem;
+  cloak?: EquippedItem;
+  mount?: EquippedItem;
+}>
+```
+
+Each present slot is an `EquippedItem`:
+
+```typescript
+interface EquippedItem {
+  serial: number;   // unique item serial
+  graphic: number;  // art graphic ID
+  name: string;     // item name string
+}
+```
+
+**Example — display a health bar in a React component:**
+
+```typescript
+import React, { useEffect, useState } from 'react';
+import { player, addEventListener, removeEventListener } from '@classicuo/modding';
+
+const HealthBar = () => {
+  const [hp, setHp] = useState(0);
+  const [hpMax, setHpMax] = useState(1);
+
+  useEffect(() => {
+    const refresh = async () => {
+      setHp(await player.hits);
+      setHpMax(await player.hitsMax);
+    };
+    refresh();
+    const id = addEventListener('journalEntry', refresh);
+    return () => removeEventListener(id);
+  }, []);
+
+  const pct = hpMax > 0 ? (hp / hpMax) * 100 : 0;
+
+  return (
+    <div style={{ width: 120, height: 12, background: '#333', borderRadius: 2 }}>
+      <div style={{ width: `${pct}%`, height: '100%', background: '#c00', borderRadius: 2 }} />
+    </div>
+  );
+};
+```

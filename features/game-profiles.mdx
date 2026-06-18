@@ -1,0 +1,59 @@
+---
+title: 'ClassicUO Web: Game Profiles and Cloud Sync Guides'
+sidebarTitle: 'Game Profiles'
+description: 'Learn how ClassicUO Web ties game profiles to your assistant, enables cloud sync across devices, and keeps automatic local backups every five minutes.'
+---
+
+Game Profiles in ClassicUO Web are deeply integrated with your Assistant Profile — they are one and the same. Every setting you configure in-game, from open gumps and window size to options like Always Run and auto-open doors, is stored in a single unified profile. The Assistant also remembers the last profile you used for each character and automatically loads it when you enter the game, so you're always dropped back into your preferred setup without any manual intervention.
+
+<Tip>
+  You can swap between profiles for different play-styles — such as Farming, PvP, or PvM — without reloading the game. Bind a hotkey to a different profile in the options to quick-swap between them. Keep in mind that hotkeys are **per-profile** and not global, so you'll need to configure them separately on each profile.
+</Tip>
+
+## Cloud Sync
+
+All Assistant data is stored in the cloud periodically, working in a similar way to Steam Cloud saves. When you log in from a new PC or browser, ClassicUO Web automatically synchronises your latest state so you can continue exactly where you left off. If the cloud save is newer than your local copy, the latest version is downloaded automatically — a handy safeguard if you ever switch machines mid-session.
+
+<Note>
+  Cloud sync is tied to your Assistant account. Make sure you are logged in to the same account on every device to benefit from automatic synchronisation.
+</Note>
+
+## Backups
+
+ClassicUO Web maintains a rolling set of local backups of your Assistant State so you can recover from accidental changes or configuration mistakes.
+
+<CardGroup cols={3}>
+  <Card title="Automatic" icon="clock">
+    A backup is created automatically approximately every 5 minutes while you are playing.
+  </Card>
+  <Card title="Rolling Window" icon="rotate">
+    Up to 10 backups are kept locally at any one time. Older backups are removed as new ones are created.
+  </Card>
+  <Card title="Easy Restore" icon="arrow-rotate-left">
+    Open the User Profile window, navigate to the Backups section, and select any backup to restore it.
+  </Card>
+</CardGroup>
+
+## Managing Multiple Profiles
+
+Because profiles are entirely independent of one another, they are ideal for maintaining distinct configurations for different activities or characters. Each profile stores its own:
+
+- **Game settings** — video, sound, UI layout, and all experimental feature toggles
+- **Open gumps** — which windows are open and where they are positioned on screen
+- **Hotkeys** — every key binding is scoped to the profile, not shared globally
+- **Assistant state** — macros, scripts, loot lists, and action bar configuration
+
+<Steps>
+  <Step title="Open the Profile Selector">
+    Click your profile name in the Assistant to open the profile management window.
+  </Step>
+  <Step title="Create or Duplicate a Profile">
+    Add a new blank profile or duplicate an existing one as a starting point for a new activity.
+  </Step>
+  <Step title="Assign a Hotkey">
+    In the Hotkeys window, bind a key combination to the new profile so you can quick-swap without leaving the game.
+  </Step>
+  <Step title="Configure Per-Profile Settings">
+    Log in with the new profile active and adjust your game options, gump layout, and hotkeys independently from your other profiles.
+  </Step>
+</Steps>

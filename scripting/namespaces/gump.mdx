@@ -1,0 +1,382 @@
+---
+title: 'Gump Class: Find and Reply to In-Game Server Gumps'
+sidebarTitle: 'Gump'
+description: 'Reference for the Gump class — find and reply to server-sent gumps, handle vendor buy/sell data, and manage gump checkboxes and text entry fields.'
+---
+
+The `Gump` class provides a scripting interface for gumps sent to the client by the server — dialog boxes, crafting menus, runebooks, vendor interfaces, and more. Each server gump has a unique **serial** per shard and only one instance of a given serial can be open at a time.
+
+A `Gump` instance represents a reference to that open gump. If the gump is closed (by the server, the player, or your script), `gump.exists` will return `false`. Always check this before interacting with a gump in long-running scripts.
+
+```typescript
+player.use(0x4021c7b1); // Runebook object serial
+const gump = Gump.findOrWait(0x59, 1000); // Wait 1 second for the gump to appear
+if (!gump) {
+  exit("There's no gump open, is the runebook missing?");
+}
+
+player.say("I'm outta here!");
+gump.reply(10); // Press the first rune button
+```
+
+---
+
+## Static Properties
+
+### Gump.last
+
+```typescript
+static last: null | Gump;
+```
+
+A reference to the most recently received server gump. Returns `null` if no gump has been seen or the last one was closed.
+
+```typescript
+Gump.last?.close();
+```
+
+---
+
+### Gump.lastSerial
+
+```typescript
+static lastSerial: number;
+```
+
+The server serial of the most recently received gump. The gump may no longer be open — check `Gump.exists(serial)` first.
+
+---
+
+### Gump.lastVendorBuyData
+
+```typescript
+static lastVendorBuyData: undefined | object;
+```
+
+Returns the data from the last vendor **buy** gump seen. Contains vendor serial and item list.
+
+```typescript
+const data = Gump.lastVendorBuyData;
+if (data && data.type === 'buy') {
+  // Buy all ingots the vendor has
+  const ingots = data.items.filter((i) => i.name.toLowerCase().includes('ingot'));
+  client.sendBuyRequest(data.vendor, ingots);
+  console.log('Bought items', ingots);
+}
+```
+
+---
+
+### Gump.lastVendorSellData
+
+```typescript
+static lastVendorSellData: undefined | object;
+```
+
+Returns the data from the last vendor **sell** gump seen. Contains vendor serial and item list.
+
+```typescript
+player.say('vendor sell');
+
+const data = Gump.lastVendorSellData;
+if (data && data.type === 'sell') {
+  const tongs = data.items.filter((i) => i.name.toLowerCase() === 'tongs');
+  client.sendSellRequest(data.vendor, tongs);
+  console.log('Sold items', tongs.map((i) => i.name));
+}
+```
+
+---
+
+## Instance Properties
+
+### exists
+
+```typescript
+exists: boolean;
+```
+
+Returns `true` if this gump instance is still open. Becomes `false` if the server or player closes it.
+
+```typescript
+const gump = Gump.findOrWait(0xbb1b5472, 100);
+if (!gump) {
+  exit("There's no gump open!");
+}
+
+// ... later in the script
+
+if (!gump.exists) {
+  console.log('The gump was closed externally.');
+}
+```
+
+---
+
+### serial
+
+```typescript
+serial: number;
+```
+
+The server serial that uniquely identifies this gump on the shard.
+
+---
+
+## Static Methods
+
+### Gump.findOrWait()
+
+```typescript
+static findOrWait(
+  serialOrText: string | number,
+  timeoutMs?: number,
+  fromServer?: boolean
+): undefined | Gump
+```
+
+Finds an already-open gump or waits up to `timeoutMs` for one to appear. Can search by serial number or by text content.
+
+<ParamField path="serialOrText" type="string | number" required>
+  The server serial (`number`) or a text substring (`string`) to search for.
+</ParamField>
+<ParamField path="timeoutMs" type="number">
+  Maximum wait time in milliseconds. Defaults to 5000ms if not specified.
+</ParamField>
+<ParamField path="fromServer" type="boolean">
+  If `false`, searches local (client-side) gumps too. Defaults to `true`.
+</ParamField>
+
+```typescript
+// Find by serial, wait 100ms
+const gump = Gump.findOrWait(0xbb1b5472, 100);
+if (gump) {
+  gump.reply(1);
+}
+```
+
+```typescript
+// Find by text content
+const gump = Gump.findOrWait('Blacksmithy Selection Menu');
+if (gump) {
+  gump.reply(1);
+}
+```
+
+```typescript
+// Find a local (non-server) gump
+const bag = client.findObject(0x4021c7b1);
+if (bag) {
+  player.use(bag);
+  const gump = Gump.findOrWait(bag, 1000, false); // false = search local gumps
+  if (gump) {
+    client.sysMsg('gump found');
+  }
+}
+```
+
+---
+
+### Gump.exists()
+
+```typescript
+static exists(serial: number): boolean
+```
+
+Checks whether a gump with the given serial is currently open, without creating a `Gump` instance.
+
+```typescript
+if (Gump.exists(0xbb1b5472)) {
+  player.say('My lovely lady gumps, check it out');
+}
+```
+
+---
+
+### Gump.closeAll()
+
+```typescript
+static closeAll(): void
+```
+
+Closes all open gumps except the Top Bar, Buff Bar, and World view. Equivalent to the **Close Gumps** hotkey.
+
+```typescript
+Gump.closeAll();
+```
+
+---
+
+### Gump.waitForVendorGumpData()
+
+```typescript
+static waitForVendorGumpData(timeoutMs?: number): undefined | object
+```
+
+Waits for a vendor buy or sell gump to appear and returns its data. Returns `undefined` if no vendor gump appears within the timeout.
+
+<ParamField path="timeoutMs" type="number">Maximum time to wait in milliseconds.</ParamField>
+
+```typescript
+// Caution! This sells everything the vendor will accept!
+player.say('vendor sell');
+const data = Gump.waitForVendorGumpData();
+
+if (data && data.type === 'sell') {
+  client.sendSellRequest(data.vendor, data.items);
+  console.log('Sold items', data.items.map((i) => i.name));
+}
+```
+
+---
+
+## Instance Methods
+
+### reply()
+
+```typescript
+reply(buttonID: number): void
+```
+
+Simulates pressing a button in the gump. Use `hasButton()` first if you're unsure the button exists.
+
+<ParamField path="buttonID" type="number" required>The numeric ID of the button to press.</ParamField>
+
+```typescript
+const gump = Gump.findOrWait(0xbb1b5472, 100);
+if (gump?.containsText('Alchemy')) {
+  gump.reply(1); // Craft something
+}
+```
+
+---
+
+### containsText()
+
+```typescript
+containsText(value: string): boolean
+```
+
+Checks whether the gump's text content contains the given string (case-insensitive).
+
+```typescript
+const gump = Gump.findOrWait(0xbb1b5472, 100);
+if (gump?.containsText('Tailoring')) {
+  player.say('I hate tailors');
+  gump.close();
+}
+```
+
+---
+
+### hasButton()
+
+```typescript
+hasButton(id: number): boolean
+```
+
+Returns `true` if the gump has a button with the given ID. Use this before `reply()` to avoid sending an invalid button press.
+
+```typescript
+const gump = Gump.findOrWait(0x59);
+if (gump && gump.hasButton(10)) {
+  gump.reply(10);
+}
+```
+
+---
+
+### close()
+
+```typescript
+close(): void
+```
+
+Closes this gump.
+
+```typescript
+if (Gump.last?.containsText('Chat')) {
+  Gump.last?.close();
+}
+```
+
+---
+
+### setCheckbox()
+
+```typescript
+setCheckbox(serial: number, value: boolean): void
+```
+
+Sets the state of a checkbox or radio button control within the gump. Call `reply()` afterwards to submit.
+
+<ParamField path="serial" type="number" required>The control serial within the gump.</ParamField>
+<ParamField path="value" type="boolean" required>`true` to check, `false` to uncheck.</ParamField>
+
+```typescript
+const gump = Gump.findOrWait(0x59);
+gump?.setCheckbox(0x01, true);
+gump?.reply(1);
+```
+
+---
+
+### setTextEntry()
+
+```typescript
+setTextEntry(localSerial: number, value: string): void
+```
+
+Sets the content of a text entry field in the gump.
+
+<ParamField path="localSerial" type="number" required>The local serial of the text entry control.</ParamField>
+<ParamField path="value" type="string" required>The text to enter.</ParamField>
+
+```typescript
+const gump = Gump.findOrWait(0x59);
+gump?.setTextEntry(0x01, 'Hello there');
+gump?.reply(1);
+```
+
+---
+
+### switchPage()
+
+```typescript
+switchPage(page: number): void
+```
+
+Switches the gump to a different page if the gump supports pagination.
+
+```typescript
+const gump = Gump.findOrWait(0x59);
+gump?.switchPage(2);
+```
+
+---
+
+### horizontalMenuSelect()
+
+```typescript
+horizontalMenuSelect(graphic: number, hue?: number): void
+```
+
+Selects an item from a legacy T2A-style horizontal context menu gump.
+
+<ParamField path="graphic" type="number" required>The graphic ID of the item to select.</ParamField>
+<ParamField path="hue" type="number">Optional hue of the item.</ParamField>
+
+---
+
+## Common Pattern — Runebook
+
+```typescript
+player.use(0x4021c7b1); // Runebook serial
+const gump = Gump.findOrWait(0x59, 2000);
+if (!gump) exit('Runebook gump not found');
+
+// Navigate to the second rune
+if (gump.hasButton(11)) {
+  gump.reply(11);
+}
+```

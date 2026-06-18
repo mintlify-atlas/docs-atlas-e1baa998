@@ -1,0 +1,71 @@
+---
+title: 'Grid Containers in ClassicUO Web — Item Management'
+sidebarTitle: 'Grid Containers'
+description: 'Discover Grid Containers in ClassicUO Web — browser-rendered, auto-sorted item grids with resizing, scrolling, Hot Container transfers, and item pinning.'
+---
+
+Grid Containers are a completely browser-rendered replacement for the classic slot-based UO container interface. Rather than placing items in fixed pixel positions, the grid **automatically sorts and aligns every item**, making containers resizable and scrollable without any manual tidying. Whether you're managing a crafting chest, a loot bag, or a vendor backpack, the grid layout keeps your items consistently organised and easy to navigate.
+
+<Note>
+  Enable **Modern Grid Containers**, **Modern Loot Gump**, and **Modern Tooltips** under **Experimental** in [Game Options](/features/game-options) to activate this feature.
+</Note>
+
+## Feature Highlights
+
+<CardGroup cols={2}>
+  <Card title="Auto-Sorting Layout" icon="grid">
+    Items are automatically aligned in a uniform grid. There are no fixed slots — the layout recalculates whenever items are added or removed, keeping everything tidy.
+  </Card>
+  <Card title="Resizable and Scrollable" icon="arrows-up-down-left-right">
+    Drag the container edges to resize the window to any size you prefer. Items reflow automatically, and a scroll bar appears when there are more items than fit in the visible area.
+  </Card>
+  <Card title="Flexible Sorting" icon="arrow-up-a-z">
+    Sort items by **Name**, **Serial**, **Weight**, **Layer**, or **Magic Item Level** to find what you need instantly.
+  </Card>
+  <Card title="Hot Container" icon="bolt">
+    Alt-click a target container to designate it as the Hot Container. Then alt-click any item to instantly transfer it to that container without dragging.
+  </Card>
+  <Card title="Context Menus and Stacking" icon="list">
+    All standard UO context menus are supported. Stacking and splitting items also works — use **Ctrl+Click** to split a stack.
+  </Card>
+  <Card title="Item Pinning" icon="star">
+    Middle-click any item to pin it to the top of the grid. Pinned items display a yellow star in the top-right corner so they are easy to identify.
+  </Card>
+</CardGroup>
+
+## Loot Containers
+
+When the Modern Loot Gump is enabled alongside Grid Containers, corpse loot windows are also displayed using the grid layout. This makes looting corpses much faster — you can see all available items at once, use the Hot Container feature to quickly shuttle items into your bags, and take advantage of the same sorting and filtering tools available in regular containers.
+
+<Tip>
+  Designate your primary loot bag as the Hot Container before engaging in combat. When a corpse window opens, alt-clicking items sends them straight to your loot bag without needing to drag anything.
+</Tip>
+
+## Searching Within Containers
+
+A search bar is available at the top of each grid container window. Typing any text instantly filters the visible items to those whose names match your query, letting you find specific items in large containers without scrolling.
+
+## Magic Item Level Colours (Shard Owners)
+
+The web client supports colour-coded Magic Item Level display. When the item name returned by your shard for cliloc **`1042971`** includes a `<basecolor>` tag, ClassicUO Web extracts that colour and applies it to both the item text and its background in the grid. This allows shard owners to provide a visual rarity tier system for magic items — similar to colour-coded quality systems seen in modern ARPGs.
+
+<Note>
+  This feature requires the shard to send the appropriate cliloc data. If you are a player on a shard that does not yet support this, contact your shard administrators and point them to the [Shard Owner documentation](/shard-owners/overview).
+</Note>
+
+## Enabling Grid Containers
+
+<Steps>
+  <Step title="Open Game Options">
+    Press **Options** from the main menu or use your configured hotkey to open the Game Options window.
+  </Step>
+  <Step title="Navigate to Experimental">
+    Click the **Experimental** tab in the options panel.
+  </Step>
+  <Step title="Enable All Three Toggles">
+    Turn on **Modern Grid Containers**, **Modern Loot Gump**, and **Modern Tooltips**. All three work together for the best experience.
+  </Step>
+  <Step title="Reopen Containers">
+    Close any currently open containers and reopen them. They will now display in the new grid layout.
+  </Step>
+</Steps>

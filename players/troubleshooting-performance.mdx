@@ -1,0 +1,168 @@
+---
+title: "Fix Slow, Laggy, or High CPU Usage in the Web Client"
+sidebarTitle: "Performance Issues"
+description: "Resolve lag, high CPU usage, and slow frame rates in the ClassicUO Web Client by enabling GPU acceleration, tuning Chrome flags, and updating drivers."
+---
+
+Poor performance in the Web Client is almost always caused by the browser falling back to software rendering instead of using your graphics card. The steps below walk you through enabling hardware acceleration, tuning Chrome's graphics settings, and configuring the in-game options that have the biggest impact on frame rate and CPU load.
+
+## Quick-Reference Checklist
+
+Before working through the full guide, check each item in the table below. If anything is off, the corresponding section explains how to fix it.
+
+| Setting | Target Value |
+|---|---|
+| Hardware acceleration | On |
+| High-performance GPU (laptops) | Enabled |
+| Graphics backend (Windows) | D3D11 |
+| Max FPS | Match your monitor's refresh rate |
+| Game Loop Scheduler | Immediate |
+| Energy Saver | Off |
+| GPU drivers | Latest available |
+
+---
+
+## Step 1 — Make Sure the Browser Is Using Your Graphics Card
+
+This is the single most common cause of poor performance. Open the GPU status page in Chrome and confirm everything is hardware-accelerated.
+
+<Steps>
+  <Step title="Open the GPU status page">
+    Navigate to the following address in Chrome:
+
+    ```text
+    chrome://gpu
+    ```
+
+    Look for the **Graphics Feature Status** section near the top. Every row should read **Hardware accelerated**. If any row reads *Software only, hardware acceleration unavailable* or *Disabled*, continue to the next steps.
+  </Step>
+  <Step title="Enable hardware acceleration in Chrome settings">
+    Go to Chrome settings and turn on the hardware acceleration toggle:
+
+    ```text
+    chrome://settings/system
+    ```
+
+    Enable **Use graphics acceleration when available**, then relaunch Chrome.
+  </Step>
+  <Step title="Override the GPU blocklist (if still disabled)">
+    Chrome sometimes blocklists older GPUs even when they work fine. Override that blocklist with this flag:
+
+    ```text
+    chrome://flags/#ignore-gpu-blocklist
+    ```
+
+    Set it to **Enabled**, then relaunch.
+  </Step>
+  <Step title="Force the high-performance GPU on laptops">
+    Laptops with two GPUs (integrated + discrete) default to the low-power integrated chip. Force Chrome onto the faster discrete GPU:
+
+    ```text
+    chrome://flags/#force-high-performance-gpu
+    ```
+
+    Set it to **Enabled**, then relaunch.
+
+    <Warning>
+      Forcing the high-performance GPU increases power consumption and heat. Plug in your laptop before gaming, and revert this flag if you need to conserve battery.
+    </Warning>
+  </Step>
+</Steps>
+
+---
+
+## Step 2 — Set the Graphics Backend to DirectX 11 (Windows Only)
+
+Chrome supports multiple graphics APIs. On Windows, DirectX 11 (D3D11) generally gives the best WebGL performance for games.
+
+<Steps>
+  <Step title="Open the ANGLE backend flag">
+    Navigate to:
+
+    ```text
+    chrome://flags/#use-angle
+    ```
+  </Step>
+  <Step title="Select D3D11">
+    Change the dropdown from **Default** to **D3D11**, then relaunch Chrome.
+  </Step>
+</Steps>
+
+<Note>
+  This flag only affects Windows. On macOS and Linux, leave it at Default or follow the Linux-specific tip at the bottom of this page.
+</Note>
+
+---
+
+## Step 3 — Update Your GPU Drivers
+
+Outdated drivers are a frequent source of crashes, graphical glitches, and poor WebGL performance. Download the latest drivers directly from your GPU manufacturer:
+
+- **Nvidia:** `nvidia.com/drivers`
+- **AMD:** `amd.com/support`
+- **Intel:** `intel.com/download-center`
+
+After installing, relaunch Chrome and revisit `chrome://gpu` to confirm the driver version has updated.
+
+---
+
+## Step 4 — Tune the In-Game Video Settings
+
+Once the browser is using your GPU, these in-game settings give you fine-grained control over performance.
+
+<Steps>
+  <Step title="Cap FPS to your monitor's refresh rate">
+    Go to **Options > Video** and set the **Maximum FPS** slider to match your monitor's refresh rate (typically 60, 120, or 144 Hz). Running uncapped wastes CPU and GPU cycles on frames your display can never show.
+  </Step>
+  <Step title="Set the Game Loop Scheduler to Immediate">
+    In **Options > Video**, find **Game Loop Scheduler** and set it to **Immediate**. This reduces input latency and produces smoother frame pacing on most systems.
+  </Step>
+</Steps>
+
+---
+
+## Step 5 — Reduce Background Load
+
+Even with a powerful GPU, excess background activity can steal CPU time from the game.
+
+- **Close other tabs** — each open tab consumes memory and may run JavaScript timers.
+- **Close background programs** — video editors, cloud sync tools, and antivirus scans all compete for CPU.
+- **Disable browser extensions** — a single poorly-written extension can spike CPU usage. Test by disabling everything at:
+
+  ```text
+  chrome://extensions/
+  ```
+
+  Re-enable them one by one to identify the culprit.
+
+---
+
+## Running Multiple Accounts
+
+If you run more than one account simultaneously, keep each account in a **separate Chrome window** rather than separate tabs. Also configure Chrome's memory settings to prevent inactive windows from being throttled:
+
+1. Open Chrome Settings and go to **Performance**.
+2. Add the game URL to the **Always Keep Active** list.
+3. Turn off **Energy Saver** if it is enabled, as it throttles background tabs and caps frame rates.
+
+---
+
+## Fix Purple or Corrupted Textures (Linux — Wayland + Vulkan)
+
+On Linux with a Wayland compositor and the Vulkan graphics stack, some users see purple or missing textures. Switch the ANGLE backend to OpenGL:
+
+```text
+chrome://flags/#use-angle
+```
+
+Set to **OpenGL**, then relaunch. Alternatively, force Chrome to use XWayland by launching it from a terminal with:
+
+```text
+--ozone-platform=x11
+```
+
+---
+
+<Note>
+  Still struggling after following all these steps? Check whether your browser is actually on a supported configuration using the [Browser Test guide](players/troubleshooting-browser-test), or ask in **#web-general** on Discord.
+</Note>

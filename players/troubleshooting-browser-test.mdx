@@ -1,0 +1,115 @@
+---
+title: "Test Your Browser for ClassicUO Web Compatibility"
+sidebarTitle: "Browser Test"
+description: "Verify your browser and GPU are ready for the ClassicUO Web Client with these WebGL, WebAssembly, and performance test pages before you start playing."
+---
+
+Before spending time troubleshooting in-game problems, it's worth confirming that your browser and graphics hardware are actually capable of running the ClassicUO Web Client. This page lists the supported browsers and provides a set of quick test links that check WebGL, WebAssembly, and overall browser speed — all of which the Web Client depends on.
+
+---
+
+## Browser Support
+
+Not all browsers are equal when it comes to WebAssembly performance and storage quota. Use the table below to choose the right browser before you start.
+
+| Browser | Status | Notes |
+|---|---|---|
+| **Chrome** | ✅ Recommended | Best overall compatibility and WebGL performance |
+| **Chrome (installed as app)** | ✅ Recommended | Standalone window, no tab bar, persistent storage, fewer hotkey conflicts |
+| **Microsoft Edge** | ✅ Supported | Same Chromium engine as Chrome; often grants a larger storage quota and is a great choice for a dedicated game browser |
+| **Brave** | ❌ Not supported | Aggressive fingerprinting and storage restrictions break the Web Client |
+| **Firefox** | ❌ Not supported | WebAssembly threading model differs; not compatible at this time |
+| **Safari** | ❌ Not supported | Missing WebAssembly features required by the client |
+| **Incognito / Private mode** | ❌ Incompatible | Storage is severely limited (often under 100 MB); game files cannot be downloaded |
+
+<Note>
+  Microsoft Edge is built on the same Chromium engine as Chrome, so all `chrome://flags` tips in the performance guide have equivalents at `edge://flags`. Edge is an excellent choice if you want a dedicated browser for the game.
+</Note>
+
+---
+
+## Is WebGL Working?
+
+The Web Client renders entirely through WebGL 2. Use these two pages to confirm your browser can run WebGL and that it is using your real GPU rather than a slow software fallback.
+
+<Steps>
+  <Step title="Check for WebGL 2 support">
+    Open the following URL in your browser:
+
+    ```text
+    get.webgl.org/webgl2
+    ```
+
+    If you see a spinning, colourful cube, WebGL 2 is working correctly. If the page shows an error or a blank canvas, your browser does not have WebGL 2 enabled — revisit the [performance troubleshooting guide](players/troubleshooting-performance) to enable hardware acceleration.
+  </Step>
+  <Step title="Check which GPU is being used">
+    Open the WebGL report page:
+
+    ```text
+    webglreport.com/?v=2
+    ```
+
+    Find the **Unmasked Renderer** field. It should show the name of your real graphics card (e.g. *NVIDIA GeForce RTX 3060*, *AMD Radeon RX 6700*, *Intel Iris Xe*).
+
+    <Warning>
+      If the Unmasked Renderer shows any of the following values, your browser is using slow **software rendering** instead of your GPU. Performance will be unacceptably poor — follow the [performance guide](players/troubleshooting-performance) to fix it before playing.
+
+      - `Google SwiftShader`
+      - `llvmpipe`
+      - `Apple Software Renderer`
+    </Warning>
+  </Step>
+</Steps>
+
+---
+
+## GPU Benchmark Tests
+
+These tests measure how quickly your GPU can process graphics workloads in the browser. They are optional but useful if you want a baseline before and after applying performance fixes.
+
+<CardGroup cols={2}>
+  <Card
+    title="WebGPU Stress Test"
+    icon="fire-flame-curved"
+    href="https://WebGPUStress.com"
+  >
+    Pushes your GPU hard to surface thermal and driver issues under load. Good for checking stability.
+  </Card>
+  <Card
+    title="GPU Benchmark with FPS Graphs"
+    icon="chart-line"
+    href="https://volumeshader.dev/en/gpu-test"
+  >
+    Runs a rendered benchmark and plots live FPS graphs so you can compare performance across settings.
+  </Card>
+</CardGroup>
+
+---
+
+## Is WebAssembly Working?
+
+The ClassicUO Web Client is compiled to WebAssembly. If WebAssembly is disabled or broken in your browser, the client will not load at all. Run this quick check:
+
+```text
+wasm.joway.io
+```
+
+The page gives a simple **yes/no** result. If it says WebAssembly is not supported, check that your browser is up to date and that no enterprise policy or extension is blocking it.
+
+---
+
+## Overall Browser Speed
+
+Speedometer measures how quickly your browser can execute JavaScript and update the DOM — a good proxy for general responsiveness.
+
+```text
+browserbench.org/Speedometer3.1/
+```
+
+A score above **20** is generally comfortable for the Web Client. Lower scores may indicate that the browser is throttled, running in a VM, or that the machine itself is under heavy load.
+
+---
+
+<Tip>
+  Once all tests pass, head to the [Quick Start guide](players/quickstart) to get in game, or continue to the [performance troubleshooting page](players/troubleshooting-performance) if you want to fine-tune your setup first.
+</Tip>

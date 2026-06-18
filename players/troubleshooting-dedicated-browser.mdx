@@ -1,0 +1,89 @@
+---
+title: "Set Up a Dedicated Browser for ClassicUO Web Client"
+sidebarTitle: "Dedicated Browser"
+description: "Install a separate browser for ClassicUO Web to isolate ExitLag, game flags, and settings from your everyday browsing without affecting Chrome."
+---
+
+Running the ClassicUO Web Client in the same browser you use for everything else creates a few practical problems. Performance flags you set in `chrome://flags` affect every site you visit. If you use ExitLag, enabling it for Chrome routes **all** your browser traffic through the VPN — including banking, streaming, and work tabs. And game-specific settings like aggressive GPU flags or disabled Energy Saver can interfere with battery life on a laptop.
+
+The solution is a **dedicated browser** used exclusively for the game. This guide walks you through picking one, testing it, and getting it fully configured.
+
+---
+
+## Step 1 — Install a Dedicated Browser
+
+You have two good options. Pick the one that suits your setup.
+
+<CardGroup cols={2}>
+  <Card
+    title="Microsoft Edge"
+    icon="browser"
+  >
+    **Recommended for most players.** Edge is already installed on every modern Windows PC. It runs the same Chromium engine as Chrome, supports all the same `edge://flags` tweaks, and often grants a larger storage quota than Chrome. Using Edge as your game browser keeps your main Chrome installation completely untouched.
+  </Card>
+  <Card
+    title="Chrome Beta"
+    icon="chrome"
+  >
+    A separate Chrome release channel that installs alongside your main Chrome installation without overwriting it. Download from `google.com/chrome/beta`. Useful if you prefer a Chrome-identical experience and already use Edge for something else.
+  </Card>
+</CardGroup>
+
+<Note>
+  Avoid using a Chrome Profile instead of a separate browser. Profiles share the same `chrome://flags` settings, so performance flags you set for the game will still affect your other profiles.
+</Note>
+
+---
+
+## Step 2 — Test Your Browser
+
+Before investing time in configuration, confirm that the new browser meets the minimum requirements for the Web Client. Follow the full [Browser Test guide](players/troubleshooting-browser-test) using your dedicated browser.
+
+Pay particular attention to the **Unmasked Renderer** check at `webglreport.com/?v=2`. It should show your real GPU — not a software renderer — before you proceed.
+
+---
+
+## Step 3 — Apply Performance Settings
+
+With a dedicated browser, you can apply aggressive performance flags without worrying about their effect on everyday browsing. Follow the [performance troubleshooting guide](players/troubleshooting-performance) using the flags page for your chosen browser:
+
+- **Microsoft Edge:**
+
+  ```text
+  edge://flags
+  ```
+
+- **Chrome Beta:**
+
+  ```text
+  chrome://flags
+  ```
+
+All flag names and values are identical between Edge and Chrome. Apply every relevant setting from the performance guide, then relaunch the dedicated browser.
+
+---
+
+## Step 4 — Install the Game as an App
+
+Installing the Web Client as an app from within your dedicated browser gives you a standalone window that launches directly into the game and requests persistent storage so your downloaded game files are never auto-evicted.
+
+Follow the [Install the Game as an App guide](players/install-as-app) using your dedicated browser. The resulting shortcut will open only the game, not the full browser UI.
+
+---
+
+## Step 5 — Add the Dedicated Browser to ExitLag (Optional)
+
+If you use ExitLag to reduce latency, add your dedicated browser to ExitLag rather than your main Chrome installation. This way, only game traffic is routed through the VPN.
+
+- For **Microsoft Edge**, add `msedge.exe` to ExitLag.
+- For **Chrome Beta**, find the `chrome.exe` inside the Chrome Beta installation folder (typically `C:\Program Files\Google\Chrome Beta\Application\chrome.exe`) and add that path.
+
+See the [ExitLag and Gaming VPNs guide](players/troubleshooting-gaming-vpn) for the full configuration steps.
+
+---
+
+## Your Settings Follow You
+
+<Tip>
+  All in-game settings — including your FPS cap, keybind macros, and character profiles — are saved to the cloud and tied to your account. They load automatically the first time you log in on any browser or device, so switching to a dedicated browser doesn't mean starting from scratch.
+</Tip>

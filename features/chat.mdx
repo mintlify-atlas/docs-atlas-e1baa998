@@ -1,0 +1,71 @@
+---
+title: 'ClassicUO Web Modern Chat Gump — Tabbed Chat Window'
+sidebarTitle: 'Chat'
+description: 'Explore the Modern Chat Gump in ClassicUO Web — a tabbed MMO-style chat window with filters, autocomplete, timestamps, and a 1,000-message history.'
+---
+
+The Modern Chat Gump replaces the classic Ultima Online Journal and chat bar with a fully tabbed chat window, much like the chat interfaces found in modern MMOs. Instead of a single scrolling journal, you create as many tabs as you need, each with its own message filters, font settings, and optional chat prefix. This makes it far easier to separate system messages from player chat, guild talk, and in-game broadcasts — all at a glance.
+
+<Note>
+  Enable **Modern Chat Gump** under **Experimental** in the [Game Options](/features/game-options) to activate this feature.
+</Note>
+
+## Feature Highlights
+
+<CardGroup cols={2}>
+  <Card title="Tabbed Interface" icon="table-columns">
+    Create and edit as many chat tabs as you like. Each tab is independently configurable with its own filters, prefix, and font settings.
+  </Card>
+  <Card title="Message Filters" icon="filter">
+    Write custom filters to control which message types appear in each tab — for example, `type != "Label"`. Several templates are provided to get you started, and all filterable properties are documented inside the UI.
+  </Card>
+  <Card title="Chat Prefix" icon="at">
+    Set a prefix that is automatically prepended to every message you send on a tab. For instance, on UOAlive's global chat channel you would set the prefix to `[c`.
+  </Card>
+  <Card title="Large History" icon="clock-rotate-left">
+    Each tab retains up to **1,000 messages** of scroll-back history so you never lose important conversation context.
+  </Card>
+  <Card title="Timestamps" icon="clock">
+    Optionally display a timestamp alongside every message to help track when events occurred during a session.
+  </Card>
+  <Card title="Font Customisation" icon="font">
+    Adjust the font, size, and weight on a per-tab basis to improve readability or match your UI theme.
+  </Card>
+  <Card title="Input History" icon="terminal">
+    Navigate your previously sent messages using the **Up / Down** arrow keys (just like a terminal), or use the classic UO hotkey **Ctrl+Q** to recall your last message. Note that **Ctrl+W** is unavailable due to a browser-level keyboard shortcut conflict.
+  </Card>
+  <Card title="Autocomplete" icon="wand-magic-sparkles">
+    Start typing any word and press **Tab** to autocomplete from your previous messages — great for repeating long phrases or common commands.
+  </Card>
+</CardGroup>
+
+## Additional Controls
+
+Beyond the core tab and messaging features, the Modern Chat Gump includes several quality-of-life controls:
+
+- **Lock position toggle** — prevents the chat window from being accidentally moved while you're clicking around the UI.
+- **Clear chat button** — wipes the visible chat history for the current tab when you want a clean slate.
+
+## Setting Up a Chat Tab
+
+<Steps>
+  <Step title="Enable Modern Chat Gump">
+    Open **Game Options**, navigate to the **Experimental** tab, and enable the **Modern Chat Gump** toggle. The new chat window will appear in place of the standard journal.
+  </Step>
+  <Step title="Create a New Tab">
+    Click the **+** button in the tab bar of the chat window to open the tab creation UI. Give your tab a descriptive name.
+  </Step>
+  <Step title="Configure Filters">
+    In the tab editor, write a filter expression to control which message types are shown. Use the provided templates as a starting point and refer to the property list displayed in the UI.
+  </Step>
+  <Step title="Set a Chat Prefix (Optional)">
+    If the tab targets a specific channel that requires a command prefix (such as a global chat channel), enter the prefix in the **Chat Prefix** field so it is sent automatically.
+  </Step>
+  <Step title="Adjust Font Settings">
+    Choose the font family, size, and weight that works best for the tab's content and your screen resolution.
+  </Step>
+</Steps>
+
+<Tip>
+  Create a dedicated tab for system and combat messages with a filter like `type == "System" || type == "Spell"` so they don't clutter your main player-chat tab.
+</Tip>

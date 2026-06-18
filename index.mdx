@@ -1,20 +1,83 @@
 ---
-title: "Introduction"
-description: "Welcome to your project"
+title: "ClassicUO Web — Ultima Online in Your Browser"
+sidebarTitle: "Home"
+description: "Play Ultima Online instantly in Chrome via WebAssembly. No installation, automatic updates, and modern quality-of-life features built for players and shard owners."
 ---
 
-Write a short description of your product here. What it does, who it's for, and what they can accomplish with it.
+ClassicUO Web brings the full Ultima Online experience to your browser. Powered by WebAssembly, it runs the [ClassicUO desktop client](https://github.com/ClassicUO/ClassicUO) natively in Chrome — complete with a built-in Web Assistant, TypeScript scripting, modern UI components, and automatic asset patching. Players connect in seconds; shard owners get powerful tools to customize the experience.
 
-<Tip>
-  Ready to make this your own? Start by editing this page. Update your `docs.json` file to customize your site. Then fill out the [Quickstart](/quickstart) page.
-</Tip>
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/players/quickstart">
+    Go from a new tab to in-game in minutes. Learn how to find a shard, log in with Discord, and start playing.
+  </Card>
+  <Card title="Features" icon="sparkles" href="/features/game-profiles">
+    Explore cloud-synced profiles, modern grid containers, autoloot, action bar, chat, and more.
+  </Card>
+  <Card title="Shard Owners" icon="server" href="/shard-owners/overview">
+    Add your shard to the server list, upload custom assets, and configure rules for your players.
+  </Card>
+  <Card title="Scripting API" icon="code" href="/scripting/introduction">
+    Automate gameplay with TypeScript or visual Blockly scripts using the built-in scripting engine.
+  </Card>
+</CardGroup>
 
-<Card title="Quickstart" icon="rocket" href="/quickstart">
-  This card links to the quickstart page in your project.
-</Card>
-<Card title="Components" icon="puzzle-piece" href="https://mintlify.com/docs/components">
-  Add cards, callouts, steps, tabs, and more to design and structure your pages.
-</Card>
-<Card title="Settings" icon="gear" href="https://mintlify.com/docs/organize/settings">
-  Set your site name, branding, and navigation in the `docs.json` file.
-</Card>
+## What is ClassicUO Web?
+
+ClassicUO Web is the browser-based version of the ClassicUO Ultima Online client, compiled to WebAssembly and delivered over a global CDN. It replaces the traditional download-and-install flow with a one-click experience — visit a URL, log in with Discord, and you're in the game.
+
+<CardGroup cols={3}>
+  <Card title="No Installation" icon="browser">
+    Runs entirely in Chrome. Game files are downloaded once and cached locally in your browser.
+  </Card>
+  <Card title="Always Up to Date" icon="arrows-rotate">
+    Asset patches are automatically applied on launch via binary-delta diffs. No manual updates needed.
+  </Card>
+  <Card title="Cloud Synced" icon="cloud">
+    Profiles, macros, scripts, and hotkeys sync across every device you log into.
+  </Card>
+  <Card title="Modern UI" icon="window">
+    React-powered overlays replace dated UO gumps with grid containers, tabbed chat, tooltips, and more.
+  </Card>
+  <Card title="Scripting" icon="terminal">
+    TypeScript and visual scripting built in. Shard owners can enable, restrict, or disable it entirely.
+  </Card>
+  <Card title="Shard Modding" icon="puzzle-piece">
+    Build custom React UI mods with the `@classicuo/modding` SDK, loaded per-shard at runtime.
+  </Card>
+</CardGroup>
+
+## Getting Started
+
+<Steps>
+  <Step title="Open Chrome">
+    ClassicUO Web requires a Chromium-based browser (Chrome, Edge, Brave). Firefox is not supported.
+  </Step>
+  <Step title="Browse the Server List">
+    Visit [play.classicuo.org](https://play.classicuo.org) to find a free shard or try the retail servers at [retail.classicuo.org](https://retail.classicuo.org).
+  </Step>
+  <Step title="Log in with Discord">
+    Authentication uses Discord to keep the service secure and sync your settings. No personally identifiable information is collected beyond your Discord username and ID.
+  </Step>
+  <Step title="Download and Play">
+    Click **Play** on any shard. Game files download once to your browser's local storage — subsequent launches are nearly instant.
+  </Step>
+</Steps>
+
+## For Shard Owners
+
+ClassicUO Web provides first-class tools for running your shard on the platform.
+
+<CardGroup cols={2}>
+  <Card title="Patching Guide" icon="file-arrow-up" href="/shard-owners/patching">
+    Upload custom MUL/UOP assets to the CDN using the Shard Management tool and the diff-tool CLI.
+  </Card>
+  <Card title="Shard Rules" icon="shield-check" href="/shard-owners/shard-rules">
+    Control which client features your players can access — disable scripting, lock game options, set defaults.
+  </Card>
+  <Card title="Modding SDK" icon="cube" href="/modding/overview">
+    Build React-based UI mods with `@classicuo/modding`. Mount custom gumps, listen to game events, interact with the client.
+  </Card>
+  <Card title="Shard Owners FAQ" icon="circle-question" href="/shard-owners/faq">
+    Common questions about the server list, IP proxying, WebIdentity packets, and the game proxy architecture.
+  </Card>
+</CardGroup>

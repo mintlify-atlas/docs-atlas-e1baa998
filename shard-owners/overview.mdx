@@ -1,0 +1,68 @@
+---
+title: 'ClassicUO Web Shard Owner Guide: Architecture and Setup'
+sidebarTitle: 'Overview'
+description: 'Everything shard owners need to get started with ClassicUO Web: server list registration, architecture overview, patching, shard rules, and modding.'
+---
+
+ClassicUO Web gives shard owners a browser-native path to reach players — no client installs, no manual patching on the player side. Your shard appears in the built-in server list, custom assets are delivered through a global CDN using efficient binary-delta patches, and the game connection is proxied over WebSocket so players connect through geographically distributed infrastructure without ever exposing your server IP. This guide introduces the key concepts and links you to the detailed references for each area.
+
+## Architecture overview
+
+Understanding how ClassicUO Web works end-to-end will help you configure and troubleshoot your shard integration.
+
+<CardGroup cols={2}>
+  <Card title="WebAssembly client" icon="microchip">
+    The C# desktop ClassicUO client is compiled to WebAssembly and runs entirely in the browser. No plugin or download is required — a Chrome-like browser and a few gigabytes of free disk space are all a player needs.
+  </Card>
+  <Card title="Content CDN & patching" icon="cloud-arrow-up">
+    Assets are stored as content-addressable VCDIFF binary-delta patches on a global CDN. Players download only the chunks they are missing, and content is deduplicated across shards so the same file is never fetched twice.
+  </Card>
+  <Card title="Game proxy (WebSocket)" icon="network-wired">
+    Direct TCP from a browser is not possible. ClassicUO Web bridges the gap with a WebSocket game proxy deployed on Fly.io across 30+ regions on an anycast address. The proxy authenticates players and hides your shard's real IP.
+  </Card>
+  <Card title="Shard Management" icon="sliders">
+    Shard staff access a dedicated Shard Management portal to upload patches, publish content to the CDN, configure shard rules, manage the server list entry, and enable the WebIdentity packet.
+  </Card>
+</CardGroup>
+
+## Adding your shard to the server list
+
+<Note>
+  The shard application process is currently in **BETA**. Submit a [shard application](https://play.classicuo.org/shard-management/shard-application) to request access.
+</Note>
+
+Once approved, you will receive access to the [Shard Management](https://play.classicuo.org/shard-management) portal. From there you can set your shard name, region, logo, focus (PvP / PvM), website, Discord link, client version, and encryption settings — all of which appear on the public server list.
+
+## Key features for shard owners
+
+<CardGroup cols={2}>
+  <Card title="Custom asset patching" icon="file-arrow-up">
+    Upload your modified MUL or UOP files through the browser-based patcher. The system automatically converts UOP assets to MUL for smaller deltas (e.g. 90 MB → 2 MB), then publishes them to the CDN in one click.
+  </Card>
+  <Card title="Shard Rules" icon="shield-halved">
+    Control exactly which ClassicUO features are available to your players. Disable scripting, turn off the dress agent or friends list, and override default values for any game-profile option — all without shipping a custom client.
+  </Card>
+  <Card title="IP protection & DDOS resilience" icon="lock">
+    Because all traffic routes through the game proxy, your shard's real IP is never exposed to players. The anycast proxy address distributes attack surface across Fly.io's entire network.
+  </Card>
+  <Card title="WebIdentity packet" icon="id-card">
+    Enable the WebIdentity packet in Shard Management to receive each player's real IP through the proxy, solving IP-limit issues caused by multiple users sharing a regional proxy egress address.
+  </Card>
+</CardGroup>
+
+## Explore the guides
+
+<CardGroup cols={2}>
+  <Card title="Patching" icon="wrench" href="shard-owners/patching">
+    Step-by-step walkthrough for uploading your custom assets and publishing them to the CDN.
+  </Card>
+  <Card title="Shard Rules" icon="list-check" href="shard-owners/shard-rules">
+    Full reference for the ShardRules schema — scripting, feature flags, and profile option overrides.
+  </Card>
+  <Card title="Shard FAQ" icon="circle-question" href="shard-owners/faq">
+    Answers to common questions about the game proxy, IP handling, open-source status, and custom clients.
+  </Card>
+  <Card title="Modding Overview" icon="code" href="modding/overview">
+    Learn about the Typescript modding API available to shard owners for building custom client experiences.
+  </Card>
+</CardGroup>

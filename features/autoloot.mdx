@@ -1,0 +1,77 @@
+---
+title: 'Loot Agent: Automatic Corpse Looting in ClassicUO Web'
+sidebarTitle: 'Autoloot'
+description: 'Set up the ClassicUO Web Loot Agent to automatically collect whitelisted items from corpses, route loot to grab bags, and filter by name or hue.'
+---
+
+The Loot Agent automatically collects items from corpses as you kill monsters, based on a whitelist of items you configure. Instead of manually opening every corpse and dragging items into your pack, you simply define which item types you want and the Loot Agent handles the rest. Items land in your backpack by default, though you can route specific items to dedicated grab bags for better organisation.
+
+<Note>
+  Enable **Modern Loot Gump** in the Loot Agent options to use the full feature set described here.
+</Note>
+
+## Options Overview
+
+The Loot Agent options window gives you full control over which items are looted, where they go, and how strictly they are matched. All settings are stored in your [Game Profile](/features/game-profiles) and sync across devices.
+
+## Adding Items to the Whitelist
+
+You can add items to your loot list in two ways:
+
+<Steps>
+  <Step title="From the Options Window">
+    Open the Loot Agent options and click the **Add Item** icon (the small plus/add icon in the top of the options window). This lets you add items by name or by targeting them in the world.
+  </Step>
+  <Step title="Directly from a Corpse (Grid Containers)">
+    If you have [Grid Containers](/features/grid-containers) enabled, you can right-click any item inside a corpse window and add it to the loot list directly from the context menu — no need to open the options window separately.
+  </Step>
+</Steps>
+
+## Grab Bags
+
+By default, every looted item is sent to your top-level backpack. For more organised looting — such as separating reagents, gold, and equipment for selling to vendors — you can assign a specific **grab bag** as the destination for each item type.
+
+To set a grab bag, locate the item in the Loot Agent options list and click the bag icon on the right-hand side of the item row. Target the bag in your pack that you want that item type sent to. Each item type can have its own independent destination bag.
+
+<Tip>
+  Use separate grab bags for high-value loot, vendor trash, and crafting materials. This saves significant time when you return to town to sell or bank after a hunt.
+</Tip>
+
+## Item Filtering
+
+Sometimes items of the same type appear on corpses with slightly different names or hues — for example, magic weapons with custom prefixes or recoloured reagents. By default, the Loot Agent matches items strictly by both name and hue, which can cause it to skip over variants you actually want.
+
+You can loosen the matching rules for any individual item using the filter toggles on its row in the options list:
+
+<CardGroup cols={2}>
+  <Card title="Ignore Name" icon="text-slash">
+    Disables name matching for this item type. The agent will loot any item that matches the remaining criteria (type and hue) regardless of its specific name.
+  </Card>
+  <Card title="Ignore Hue" icon="palette">
+    Disables hue (colour) matching. The agent will loot items of this type regardless of their colour, which is useful for items that appear in multiple colour variants.
+  </Card>
+</CardGroup>
+
+<Warning>
+  Using **Ignore Name** on broad item types (such as "Sword") can cause the agent to loot far more items than intended. Start with strict filters and loosen them only for specific items that are being incorrectly skipped.
+</Warning>
+
+## Enabling the Loot Agent
+
+<Steps>
+  <Step title="Open the Assistant">
+    Access the ClassicUO Web Assistant panel from the in-game UI.
+  </Step>
+  <Step title="Navigate to Loot Agent">
+    Select the **Loot Agent** section from the Assistant menu.
+  </Step>
+  <Step title="Enable Modern Loot Gump">
+    Toggle on **Modern Loot Gump** at the top of the Loot Agent options to activate the feature.
+  </Step>
+  <Step title="Add Items to the Whitelist">
+    Add the item types you want to loot automatically using the add icon or directly from a corpse window.
+  </Step>
+  <Step title="Assign Grab Bags (Optional)">
+    For each item type, click the destination bag icon and target the appropriate bag in your backpack.
+  </Step>
+</Steps>

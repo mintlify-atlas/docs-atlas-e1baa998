@@ -1,0 +1,120 @@
+---
+title: "Fix Download and Storage Issues in the Web Client"
+sidebarTitle: "Storage Issues"
+description: "Resolve storage quota errors, stuck or restarting downloads, and missing game files in the ClassicUO Web Client running in Chrome or Edge."
+---
+
+The ClassicUO Web Client downloads and stores roughly **3.2 GB** of game assets directly in your browser's local storage. Because browsers manage that space automatically — and can reclaim it without warning — storage problems are one of the most common issues players run into. This guide covers every scenario: slow downloads, quota errors, and files that keep disappearing.
+
+---
+
+## Downloads Are Stuck, Slow, or Keep Restarting
+
+Game files are served through Cloudflare's network. If your connection to Cloudflare is degraded, downloads will stall or restart from the beginning.
+
+<Steps>
+  <Step title="Test your connection to Cloudflare">
+    Open the following pages to check whether your network can reach Cloudflare's infrastructure at a reasonable speed:
+
+    ```text
+    speed.cloudflare.com
+    ```
+
+    ```text
+    r2-ping.fernandodilland.com
+    ```
+
+    If you see high latency or timeouts, Cloudflare's edge may be blocked or throttled on your network.
+  </Step>
+  <Step title="Check for interfering browser extensions">
+    Ad blockers, privacy extensions, and VPN browser add-ons can interrupt large downloads. Disable all extensions temporarily at:
+
+    ```text
+    chrome://extensions/
+    ```
+
+    Reload the game page and see if downloads proceed normally.
+  </Step>
+  <Step title="Try a VPN or change network">
+    If Cloudflare is being throttled by your ISP or local network, routing through a VPN may resolve the issue. Alternatively, try on a different network (mobile hotspot, for example) to confirm whether the problem is specific to your connection.
+  </Step>
+  <Step title="Clear existing game files and retry">
+    A partially downloaded file can sometimes cause the download loop. Clear the cached game files and start fresh:
+
+    1. Click your **Profile icon** in the top-right corner of the Web Client.
+    2. Go to **Storage Management**.
+    3. Click **Clear** next to **Base Assets**.
+
+    Then reload the page to begin a clean download.
+  </Step>
+  <Step title="Close other tabs">
+    Other browser tabs can compete for bandwidth and browser I/O during the initial download. Close as many as possible while the assets are downloading.
+  </Step>
+</Steps>
+
+---
+
+## "Not Enough Storage Space" Error
+
+Chrome calculates each site's storage quota based on your **total available disk space**, not a fixed per-site cap. If your drive is nearly full — or if Chrome has restricted the quota for other reasons — the Web Client won't be able to store the game files it needs.
+
+<Steps>
+  <Step title="Check your actual quota">
+    See exactly how much quota Chrome has allocated for the Web Client:
+
+    ```text
+    chrome://quota-internals/
+    ```
+
+    Look for the game's origin in the list and compare the **Quota** value against 3.2 GB. If the number is much lower, work through the tips below.
+  </Step>
+  <Step title="Free up disk space">
+    Because Chrome bases quota on total free disk space, freeing up space on your hard drive directly increases the quota available to the Web Client. Clear out temporary files, the Recycle Bin, old downloads, or use Windows' Disk Cleanup / macOS's Storage Management utility.
+  </Step>
+  <Step title='Disable "Clear cookies and site data when you close all windows"'>
+    When this Chrome setting is enabled, the browser treats all site data as session-only and caps the quota to around **300 MB** — far less than the Web Client needs. Disable it at:
+
+    ```text
+    chrome://settings/content/siteData
+    ```
+
+    Turn off **Clear cookies and site data when you close all windows**, then reload the game.
+
+    <Warning>
+      This is the most frequently overlooked cause of quota errors. If you rely on this setting for privacy, consider installing a dedicated browser for the game instead — see the [dedicated browser guide](players/troubleshooting-dedicated-browser) for instructions.
+    </Warning>
+  </Step>
+  <Step title="Install the game as an app for persistent storage">
+    Installing the Web Client as a Progressive Web App (PWA) requests **persistent storage** from the browser, which prevents Chrome from ever auto-evicting the game files. See [Install the Game as an App](players/install-as-app) for step-by-step instructions.
+  </Step>
+</Steps>
+
+---
+
+## The Game Re-Downloads Everything After a While
+
+Chrome automatically evicts cached data from sites you haven't visited recently when your disk runs low on space. This is normal browser behavior, but it means returning players can find their 3.2 GB of game assets gone.
+
+<Tip>
+  The permanent fix is to [install the Web Client as an app](players/install-as-app). Installed PWAs request persistent storage, which tells Chrome to treat the game files as protected and exempt them from automatic eviction.
+</Tip>
+
+In the meantime, you can check whether Chrome has evicted the data and trigger a fresh download by visiting the game page — downloads will restart automatically.
+
+---
+
+## Manually Clearing Game Files
+
+If you need to free up space or force a clean download, you can delete the game's stored assets without affecting your account or settings:
+
+1. Click your **Profile icon** in the top-right corner of the Web Client.
+2. Go to **Storage Management**.
+3. Click **Clear** next to **Base Assets**.
+
+Your cloud-saved profile, macros, and settings are unaffected — only the locally cached game files are removed.
+
+---
+
+<Note>
+  If you've worked through every step above and are still hitting storage errors, ask in **#web-general** on Discord or file a bug on GitHub with a screenshot of `chrome://quota-internals/` for your origin.
+</Note>

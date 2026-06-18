@@ -1,0 +1,80 @@
+---
+title: 'ClassicUO Web Player FAQ: Common Questions Answered'
+sidebarTitle: 'Player FAQ'
+description: 'Frequently asked questions for ClassicUO Web players — Discord login, data privacy, FPS, multiple accounts, Razor, and performance tips.'
+---
+
+Find answers to the most common questions players have about ClassicUO Web. If your question isn't covered here, you can file an issue on the [GitHub repository](https://github.com/ClassicUO/classicuo-web/issues).
+
+<Accordion title="Can I play on the official Ultima Online servers?">
+  Yes. As of recently, ClassicUO Web has been sanctioned for use on the official retail servers managed by Broadsword. See the [Retail FAQ](/players/faq-sanctioned) for full details on what features are available and any restrictions that apply.
+</Accordion>
+
+<Accordion title="How do I file a bug report?">
+  If you encounter a bug, please file an issue on the ClassicUO Web GitHub repository:
+  [https://github.com/ClassicUO/classicuo-web/issues](https://github.com/ClassicUO/classicuo-web/issues)
+
+  Include as much detail as possible — what you were doing, what happened, and any error messages you saw.
+</Accordion>
+
+<Accordion title="Do I need to download files every time I open the game?">
+  No. Game files are stored locally inside your browser's Chrome storage using the Origin Private File System. Once downloaded, they persist between sessions.
+
+  You can view your current on-disk usage by clicking the **profile icon** at the top right of the side menu. You can also clear the storage from there, but doing so means the files will need to be re-downloaded the next time you click Play.
+</Accordion>
+
+<Accordion title="Why do I need to log in using Discord?">
+  **Logging in with Discord helps keep the Web Client secure and running smoothly.**
+
+  - **Bot and abuse prevention** — Authentication filters out bots and bad actors, preventing spam and DDoS attacks that could cause lag or downtime.
+  - **Rate-limiting** — Stops a small number of users from overloading the service and degrading performance for everyone else.
+  - **Ban enforcement** — Shard owners can ban players by Discord account, making bans much harder to circumvent than a simple IP block.
+  - **Cross-device sync** — Your macros, scripts, and hotkeys are synced to your account and available no matter which device you play on.
+</Accordion>
+
+<Accordion title="What information do you collect about me?">
+  <Note>
+    We do not collect, access, or store any personally identifiable information (PII) such as real names, email addresses, or payment details. You can verify this by checking the Discord consent screen when you log in.
+  </Note>
+
+  We respect your privacy and will never sell or share your data with advertisers or unrelated third-party services. All data collected is strictly necessary for core functionality.
+
+  **When connecting to a shard, your Discord identifier and username are shared for authentication purposes.** See the [WebIdentity packet spec](https://github.com/ClassicUO/packets/?tab=readme-ov-file#packets) for exactly what is sent.
+
+  **Discord account data we store:**
+  - **Account identifier** (e.g. `91796932425435572`) — A numeric ID that uniquely identifies your account.
+  - **Username** (e.g. `blank1234`) — Used to display account information in the client.
+  - **Avatar** (your profile picture) — Used for the user icon in the client; not shared with shards.
+
+  **Analytics data:**
+  - **Last visit timestamp** — Helps estimate active user counts for capacity planning.
+  - **Error reports** — Anonymised error logs collected when the client encounters an issue, used to diagnose bugs.
+  - **Backend connection logs** — Retained for **30 days** to help investigate network issues.
+
+  **Assistant state (synced across devices):**
+  - Game Profiles
+  - Macros and Scripts
+  - Agent settings
+</Accordion>
+
+<Accordion title="Will the web client support Razor?">
+  No. There will likely only ever be one assistant for the web client — the built-in Web Assistant. Third-party assistants like Razor are not and will not be supported.
+</Accordion>
+
+<Accordion title="How can I increase my FPS past 60, 120, or 144?">
+  Chrome uses VSYNC by default, which locks your FPS to your monitor's refresh rate (e.g. a 60 Hz monitor caps you at 60 FPS). You can unlock the FPS cap using Chrome flags, though this is not officially supported and is unlikely to be necessary for most players.
+</Accordion>
+
+<Accordion title="Can I use multiple accounts at the same time?">
+  Yes. ClassicUO Web supports running multiple clients simultaneously via multiple browser tabs. Be aware that performance will be reduced when running more than one tab. Always check your shard's rules regarding multi-boxing before doing so.
+</Accordion>
+
+<Accordion title="What do I do if the game freezes?">
+  Close the tab **entirely** and open a new one. Simply trying to relog from a frozen tab typically does not work.
+
+  If freezes happen frequently, see the [Troubleshooting guide](/players/troubleshooting) for steps that can reduce or prevent them.
+</Accordion>
+
+<Accordion title="What do I do if the game runs poorly?">
+  See the [Performance & Lag troubleshooting guide](/players/troubleshooting-performance) for a full walkthrough. The most common fix is ensuring your browser is using your dedicated GPU instead of the CPU for rendering.
+</Accordion>

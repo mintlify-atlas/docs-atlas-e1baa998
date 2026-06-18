@@ -1,0 +1,177 @@
+---
+title: 'ClassicUO Web Mod Quickstart: Scaffold, Build, Deploy'
+sidebarTitle: 'Quickstart'
+description: 'Step-by-step guide to scaffold, build, and deploy a React-based ClassicUO Web mod using @classicuo/modding and Parcel in under ten minutes.'
+---
+
+This guide walks you through creating a working ClassicUO Web mod from scratch. You will initialise a TypeScript + React project, install `@classicuo/modding`, write your first component, bundle it with Parcel, and register the mod URL in your shard's configuration. The `modding-example` package in the ClassicUO Web monorepo is a complete reference you can clone and adapt.
+
+<Steps>
+
+### Create and initialise your project
+
+Create a new directory for your mod and initialise a `package.json`. The example uses Yarn, but npm or pnpm work equally well.
+
+```bash
+mkdir my-classicuo-mod
+cd my-classicuo-mod
+yarn init -y
+```
+
+### Install dependencies
+
+Install `@classicuo/modding` along with React, React DOM, styled-components, and Parcel as your bundler. TypeScript type packages are added as dev dependencies.
+
+```bash
+yarn add @classicuo/modding react@^17 react-dom@^17 styled-components@^5
+yarn add --dev parcel typescript @types/react@^17 @types/react-dom@^17 @types/styled-components@^5
+```
+
+<Tip>
+  The `@classicuo/modding` package ships both ESM and CJS builds and includes TypeScript declarations. No extra `@types` package is required for it.
+</Tip>
+
+### Configure package.json
+
+Set the `source` field so Parcel knows your entry point, and add build scripts. This mirrors the `modding-example` setup exactly.
+
+```json
+{
+  "name": "my-classicuo-mod",
+  "private": true,
+  "source": "src/index.html",
+  "scripts": {
+    "dev": "parcel src/index.html --open",
+    "build": "NODE_ENV=production parcel build src/index.html"
+  },
+  "dependencies": {
+    "@classicuo/modding": "^0.0.34",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "styled-components": "^5.3.5"
+  },
+  "devDependencies": {
+    "parcel": "latest",
+    "@types/react": "^17.0.17",
+    "@types/react-dom": "^17.0.17",
+    "@types/styled-components": "^5.1.26",
+    "typescript": "^4.7.4"
+  }
+}
+```
+
+### Create the HTML entry point
+
+Parcel uses an HTML file as its entry. Create `src/index.html` and point it at your mod script.
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <script type="module" src="./mod.tsx"></script>
+  </body>
+</html>
+```
+
+### Write your mod entry point
+
+Create `src/mod.tsx`. Every mod **must** call `mountInterfaceRoot` exactly once with a React function component. The SDK mounts your component tree over the game canvas.
+
+```typescript
+import React from 'react';
+import { mountInterfaceRoot, addEventListener, removeEventListener } from '@classicuo/modding';
+
+const App = () => {
+  const [lastMessage, setLastMessage] = React.useState<string>('');
+
+  React.useEffect(() => {
+    const id = addEventListener('journalEntry', (ev) => {
+      setLastMessage(`[${ev.name}]: ${ev.text}`);
+    });
+    return () => removeEventListener(id);
+  }, []);
+
+  if (!lastMessage) return null;
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        bottom: 80,
+        left: 16,
+        background: 'rgba(0,0,0,0.7)',
+        color: '#fff',
+        padding: '6px 12px',
+        borderRadius: 4,
+        fontFamily: 'monospace',
+        fontSize: 13,
+        pointerEvents: 'none'
+      }}
+    >
+      {lastMessage}
+    </div>
+  );
+};
+
+mountInterfaceRoot(App);
+```
+
+This is functionally equivalent to the entry point in the `modding-example` package (`packages/modding-example/src/mod.tsx`), which calls `mountInterfaceRoot` after importing custom components.
+
+### Add a tsconfig.json
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "jsx": "react",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "include": ["src"]
+}
+```
+
+### Build and host your mod
+
+Build the production bundle. Parcel outputs hashed assets into `dist/`.
+
+```bash
+yarn build
+```
+
+Host the output directory on any static file server that serves content over **HTTPS**. The ClassicUO Web client will not load mods served over plain HTTP.
+
+```bash
+# Example: serve locally with a tunnel for testing
+npx localtunnel --port 1234
+```
+
+### Register the mod URL in your shard
+
+Log into the [ClassicUO Shard Management](https://classicuo.org) dashboard, open your shard's settings, and add the HTTPS URL of your bundled `index.js` to the **Mods** list. The URL must point directly to the JavaScript bundle (e.g. `https://your-cdn.com/mod.js`), not to an HTML page.
+
+Once saved, players who connect to your shard will automatically receive and execute the mod bundle at login.
+
+<Note>
+  You can register multiple mods per shard. Each URL in the `mods` array is loaded in order. Make sure each bundle calls `mountInterfaceRoot` independently — multiple mods mount separate React roots without interfering with each other.
+</Note>
+
+</Steps>
+
+## What's Next
+
+<CardGroup cols={2}>
+  <Card title="API Reference" icon="code" href="/modding/api-reference">
+    Explore the full set of events, client actions, and player properties available to your mod.
+  </Card>
+  <Card title="WebGumps" icon="window" href="/modding/web-gumps">
+    Learn how to build server-driven UIs with the useWebGump hook.
+  </Card>
+</CardGroup>

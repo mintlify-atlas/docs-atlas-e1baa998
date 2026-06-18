@@ -1,0 +1,297 @@
+---
+title: 'WebGumps: Build Server-Driven React UI in ClassicUO'
+sidebarTitle: 'WebGumps'
+description: 'Build server-driven React UIs with WebGumps. Learn the useWebGump hook, GumpUpdateEvent, GumpCloseEvent, and bidirectional gump communication.'
+---
+
+WebGumps are a bidirectional communication channel between your shard's server software and the ClassicUO Web mod layer. The server identifies each gump by a `type` string and pushes JSON payloads to connected clients via network packets. On the client side, those payloads arrive as `GumpUpdateEvent` objects which your mod can consume with the `useWebGump` React hook or by listening to raw events with `addEventListener`.
+
+When a WebGump is open, the mod can also send data back to the server with `sendWebGumpResponse`, or dismiss the gump with `closeWebGump`. The `useWebGump` hook wraps both functions into a convenient `send()` and `close()` API tied to the current gump identity.
+
+---
+
+## Event Interfaces
+
+Both interfaces are exported from `@classicuo/modding`.
+
+### `GumpIdentity`
+
+The base identity shared by all gump events.
+
+```typescript
+interface GumpIdentity {
+  serial: number;    // unique gump serial assigned by the server
+  serverId: number;  // server-side gump type ID
+}
+```
+
+### `GumpUpdateEvent`
+
+Fired when the server sends a gump update payload. Extends `GumpIdentity`.
+
+```typescript
+interface GumpUpdateEvent extends GumpIdentity {
+  type: string;   // the gump type string, e.g. 'WebPlayerStatusGump'
+  json: string;   // raw JSON payload from the server — parse with JSON.parse()
+}
+```
+
+### `GumpCloseEvent`
+
+Fired when the server signals that a gump should close. Contains only the identity fields.
+
+```typescript
+interface GumpCloseEvent extends GumpIdentity {}
+```
+
+### `GumpInfo`
+
+A convenience type combining identity with a pre-parsed `data` field.
+
+```typescript
+interface GumpInfo extends GumpIdentity {
+  type: string;
+  data: any;
+}
+```
+
+---
+
+## Event Naming Convention
+
+WebGump events follow a predictable naming pattern based on the gump `type` string:
+
+| Event name | Fires when |
+|---|---|
+| `` `webGump:${type}:update` `` | Server sends a payload for the gump of that type |
+| `` `webGump:${type}:close` `` | Server closes the gump of that type |
+| `gumpUpdate` | Any gump update arrives (not type-scoped) |
+| `gumpClose` | Any gump close arrives (not type-scoped) |
+
+For example, a gump with `type = 'WebPlayerStatusGump'` fires on the event names `webGump:WebPlayerStatusGump:update` and `webGump:WebPlayerStatusGump:close`.
+
+```typescript
+import { addEventListener } from '@classicuo/modding';
+
+addEventListener('webGump:WebPlayerStatusGump:update', (event) => {
+  console.log('WebPlayerStatusGump Update!', event);
+});
+```
+
+---
+
+## `useWebGump` Hook
+
+The `useWebGump` hook is the recommended way to consume WebGumps inside React components. It manages event subscriptions, JSON parsing, and gump identity tracking automatically.
+
+```typescript
+import { useWebGump } from '@classicuo/modding/src/hooks/useWebGump';
+```
+
+### Signature
+
+```typescript
+const useWebGump = <T = any>(
+  type: string,
+  onUpdate?: (event: GumpUpdateEventWithData<T>) => void
+) => WebGumpResult<T>
+```
+
+<ParamField path="type" type="string" required>
+  The gump type string to subscribe to, e.g. `'WebPlayerStatusGump'`. The hook internally subscribes to `webGump:{type}:update` and `webGump:{type}:close` events.
+</ParamField>
+
+<ParamField path="onUpdate" type="(event: GumpUpdateEventWithData<T>) => void">
+  Optional callback fired every time an update arrives, after the hook's internal state has been updated. The event includes a `data` field of type `T | Error` (an `Error` if JSON parsing failed).
+</ParamField>
+
+### Return Value
+
+The hook returns a discriminated union based on whether the gump is currently open or closed, extended with helper methods.
+
+**When closed** (`closed: true`):
+
+```typescript
+{
+  closed: true;
+  send: (data: string | Object) => void;   // no-op when closed
+  close: () => void;                        // no-op when closed
+}
+```
+
+**When open** (`closed: false`):
+
+```typescript
+{
+  closed: false;
+  identity: GumpIdentity;   // { serial, serverId } for the current gump instance
+  data: T | Error;          // parsed JSON payload, or an Error if parsing failed
+  send: (data: string | Object) => void;   // calls sendWebGumpResponse
+  close: () => void;                        // calls closeWebGump and marks closed
+}
+```
+
+<Note>
+  The `send()` and `close()` methods are always present in the return value. When the gump is closed (`closed: true`), calling either method is a safe no-op — they check the `closed` flag internally before dispatching.
+</Note>
+
+### `GumpUpdateEventWithData<T>`
+
+The extended event type passed to the optional `onUpdate` callback:
+
+```typescript
+interface GumpUpdateEventWithData<T = any> extends GumpUpdateEvent {
+  data: T | Error;  // pre-parsed JSON; Error if JSON.parse threw
+}
+```
+
+---
+
+## Complete Example
+
+The following example shows a fully typed React component that renders a server-driven player status panel using `useWebGump`.
+
+```typescript
+import React from 'react';
+import { useWebGump } from '@classicuo/modding/src/hooks/useWebGump';
+
+// Define the shape of data your server sends for this gump type
+interface PlayerStatusData {
+  hp: number;
+  hpMax: number;
+  mana: number;
+  manaMax: number;
+  stamina: number;
+  staminaMax: number;
+  name: string;
+}
+
+const StatBar: React.FC<{ value: number; max: number; color: string }> = ({ value, max, color }) => (
+  <div style={{ background: '#222', height: 10, borderRadius: 3, overflow: 'hidden', marginBottom: 4 }}>
+    <div
+      style={{
+        width: `${max > 0 ? (value / max) * 100 : 0}%`,
+        height: '100%',
+        background: color,
+        transition: 'width 0.2s'
+      }}
+    />
+  </div>
+);
+
+export const PlayerStatusGump: React.FC = () => {
+  const gump = useWebGump<PlayerStatusData>('WebPlayerStatusGump', (ev) => {
+    // Optional: react to each update before re-render
+    if (ev.data instanceof Error) {
+      console.error('Failed to parse gump payload', ev.data);
+    }
+  });
+
+  // Gump is closed or not yet received — render nothing
+  if (gump.closed) return null;
+
+  // If the server sent malformed JSON, data will be an Error
+  if (gump.data instanceof Error) {
+    return <div style={{ color: 'red' }}>Gump data error: {gump.data.message}</div>;
+  }
+
+  const { hp, hpMax, mana, manaMax, stamina, staminaMax, name } = gump.data;
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        top: 16,
+        left: 16,
+        width: 200,
+        background: 'rgba(0,0,0,0.8)',
+        color: '#eee',
+        padding: 12,
+        borderRadius: 6,
+        fontFamily: 'sans-serif',
+        fontSize: 12
+      }}
+    >
+      <div style={{ fontWeight: 'bold', marginBottom: 8 }}>{name}</div>
+
+      <div>HP: {hp}/{hpMax}</div>
+      <StatBar value={hp} max={hpMax} color="#c00" />
+
+      <div>Mana: {mana}/{manaMax}</div>
+      <StatBar value={mana} max={manaMax} color="#00c" />
+
+      <div>Stamina: {stamina}/{staminaMax}</div>
+      <StatBar value={stamina} max={staminaMax} color="#0a0" />
+
+      <button
+        style={{ marginTop: 8, width: '100%', cursor: 'pointer' }}
+        onClick={() => gump.send({ action: 'refresh' })}
+      >
+        Refresh
+      </button>
+      <button
+        style={{ marginTop: 4, width: '100%', cursor: 'pointer' }}
+        onClick={() => gump.close()}
+      >
+        Close
+      </button>
+    </div>
+  );
+};
+```
+
+Mount this component from your mod entry point:
+
+```typescript
+import React from 'react';
+import { mountInterfaceRoot } from '@classicuo/modding';
+import { PlayerStatusGump } from './PlayerStatusGump';
+
+const App = () => <PlayerStatusGump />;
+
+mountInterfaceRoot(App);
+```
+
+---
+
+## Raw Event Approach
+
+If you prefer not to use React hooks — for example, in a class component or outside of a component tree — you can subscribe to WebGump events directly:
+
+```typescript
+import {
+  addEventListener,
+  removeEventListener,
+  sendWebGumpResponse,
+  closeWebGump
+} from '@classicuo/modding';
+
+const updateId = addEventListener('webGump:WebPlayerStatusGump:update', (event) => {
+  const data = JSON.parse(event.json);
+  console.log('Gump data:', data);
+
+  // Send a response back to the server
+  sendWebGumpResponse(event.serial, event.serverId, { action: 'ack' });
+});
+
+const closeId = addEventListener('webGump:WebPlayerStatusGump:close', (event) => {
+  console.log('Gump closed for serial', event.serial);
+});
+
+// Later, when tearing down:
+removeEventListener(updateId);
+removeEventListener(closeId);
+```
+
+---
+
+## See Also
+
+<CardGroup cols={2}>
+  <Card title="API Reference" icon="code" href="/modding/api-reference">
+    Full documentation for sendWebGumpResponse, closeWebGump, and addEventListener.
+  </Card>
+  <Card title="Shard Rules" icon="shield" href="/shard-owners/shard-rules">
+    Configure which features and scripting modes are available on your shard.
+  </Card>
+</CardGroup>

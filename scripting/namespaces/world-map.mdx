@@ -1,0 +1,247 @@
+---
+title: 'WorldMap Class: In-Game Map Markers and Navigation'
+sidebarTitle: 'WorldMap'
+description: 'Reference for the WorldMap class — open and close the map, add and remove markers, navigate to coordinates, and parse sextant location strings.'
+---
+
+The `WorldMap` class controls the in-game World Map gump and its custom marker layer. It is available globally as `worldMap`. Use it to open or close the map, jump the view to any coordinate, and manage named map markers that persist across your session.
+
+```typescript
+// Mark your current position on the map and open it
+worldMap.open();
+worldMap.addMarker({ name: 'Start', x: player.x, y: player.y, color: 'green' });
+worldMap.goTo({ x: player.x, y: player.y });
+```
+
+---
+
+## Interfaces
+
+### WorldMapMarker
+
+A fully-populated marker object as stored in the markers list.
+
+| Property | Type | Description |
+|---|---|---|
+| `name` | `string` | Display name of the marker. |
+| `x` | `number` | X coordinate on the map. |
+| `y` | `number` | Y coordinate on the map. |
+| `color` | `string` | Marker colour, e.g. `'blue'`, `'red'`, `'green'`. |
+| `mapId` | `number` | Map/facet index the marker belongs to. |
+| `zoomLevel` | `number` | Minimum zoom level at which the marker is visible. |
+
+### WorldMapMarkerPartial
+
+A partial version used when adding new markers. Only `name`, `x`, and `y` are required — the rest use defaults.
+
+| Property | Type | Required |
+|---|---|---|
+| `name` | `string` | ✅ |
+| `x` | `number` | ✅ |
+| `y` | `number` | ✅ |
+| `color` | `string` | Optional |
+| `mapId` | `number` | Optional |
+| `zoomLevel` | `number` | Optional |
+
+---
+
+## Properties
+
+### markers
+
+```typescript
+readonly markers: WorldMapMarker[];
+```
+
+A read-only array of all currently active map markers. To modify the list, use `addMarker()` and `removeMarker()` rather than mutating this array directly.
+
+```typescript
+console.log(`You have ${worldMap.markers.length} map markers.`);
+```
+
+---
+
+## Methods
+
+### open()
+
+```typescript
+open(): void
+```
+
+Opens the World Map gump.
+
+```typescript
+worldMap.open();
+```
+
+---
+
+### close()
+
+```typescript
+close(): void
+```
+
+Closes the World Map gump.
+
+```typescript
+worldMap.close();
+```
+
+---
+
+### goTo()
+
+```typescript
+goTo(coords: { x: number; y: number }): void
+```
+
+Moves the World Map view to the specified coordinates and enables **Free View** mode.
+
+<ParamField path="coords" type="object" required>
+  An object with `x` and `y` coordinates.
+</ParamField>
+
+```typescript
+worldMap.goTo({ x: player.x, y: player.y });
+```
+
+---
+
+### addMarker()
+
+```typescript
+addMarker(marker: WorldMapMarker | WorldMapMarkerPartial): WorldMapMarker
+```
+
+Adds a new marker to the World Map and returns the completed `WorldMapMarker` object (with defaults applied for any omitted fields).
+
+<ParamField path="marker" type="WorldMapMarker | WorldMapMarkerPartial" required>
+  The marker definition to add. Must include at least `name`, `x`, and `y`.
+</ParamField>
+
+```typescript
+const marker = worldMap.addMarker({
+  name: 'Here',
+  x: player.x,
+  y: player.y,
+  color: 'green'
+});
+```
+
+---
+
+### removeMarker()
+
+```typescript
+removeMarker(marker: string | object): boolean
+```
+
+Removes a marker by name (string) or by reference (object). Returns `true` if the marker was found and removed.
+
+<ParamField path="marker" type="string | object" required>
+  The marker name or marker object to remove.
+</ParamField>
+
+```typescript
+worldMap.removeMarker('Here');
+```
+
+---
+
+### removeAllMarkers()
+
+```typescript
+removeAllMarkers(): void
+```
+
+Removes every marker from the World Map.
+
+```typescript
+worldMap.removeAllMarkers();
+```
+
+---
+
+### parseLocation()
+
+```typescript
+parseLocation(input: string): undefined | object
+```
+
+Parses a location string and converts it into map coordinates. Returns `undefined` if the string cannot be parsed.
+
+<ParamField path="input" type="string" required>
+  A location string to parse. Currently supports sextant format, e.g. `100o25'S,40o04'E`.
+</ParamField>
+
+```typescript
+const marker = worldMap.addMarker({
+  name: 'Sextant Loc',
+  color: 'green',
+  ...worldMap.parseLocation("100o25'S,40o04'E")
+});
+```
+
+<Note>
+  `parseLocation` currently only supports sextant coordinate strings in the format `DDDoMM'N/S,DDDoMM'E/W`.
+</Note>
+
+---
+
+## Examples
+
+### Track a farming route
+
+```typescript
+worldMap.removeAllMarkers();
+
+const stops = [
+  { name: 'Stop 1', x: 1234, y: 2345 },
+  { name: 'Stop 2', x: 1240, y: 2350 },
+  { name: 'Stop 3', x: 1250, y: 2360 },
+];
+
+for (const stop of stops) {
+  worldMap.addMarker({ ...stop, color: 'blue' });
+}
+
+worldMap.open();
+worldMap.goTo(stops[0]);
+```
+
+---
+
+### Mark a sextant location from chat
+
+```typescript
+const sextantStr = "135o25'N,32o04'W";
+const coords = worldMap.parseLocation(sextantStr);
+
+if (coords) {
+  worldMap.addMarker({ name: 'Sextant Mark', color: 'red', ...coords });
+  worldMap.goTo(coords);
+} else {
+  client.sysMsg('Could not parse sextant location.');
+}
+```
+
+---
+
+### Clean up markers on script exit
+
+```typescript
+// Add a temporary marker
+const tempMarker = worldMap.addMarker({
+  name: 'Temp',
+  x: player.x,
+  y: player.y,
+  color: 'yellow'
+});
+
+// ... do some work ...
+
+// Remove just this one marker when done
+worldMap.removeMarker(tempMarker);
+```

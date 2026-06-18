@@ -1,0 +1,164 @@
+---
+title: 'Item Class: In-World Objects and Containers in Ultima'
+sidebarTitle: 'Item'
+description: 'Reference for the Item class — any in-world object or container. Covers amount, layer, parent container, nested contents, and Entity properties.'
+---
+
+The `Item` class represents any physical object in the game world — weapons, armour, potions, bags, chests, gold, and everything else that is not a mobile entity. `Item` extends the base `Entity` class, adding item-specific properties such as `amount`, `container`, `contents`, and `layer`.
+
+Items are returned by functions like `client.findType()`, `client.findObject()`, `client.findAllItemsOfType()`, and `client.findItemOnLayer()`.
+
+```typescript
+// Find all gold in the backpack and print the total
+const goldType = 0xeed;
+const piles = client.findAllItemsOfType(goldType, undefined, player.backpack);
+const total = piles.reduce((sum, item) => sum + item.amount, 0);
+client.headMsg(`You have ${total} gold`, player, 66);
+```
+
+---
+
+## Properties
+
+### Item-Specific Properties
+
+#### amount
+
+```typescript
+amount: number;
+```
+
+The stack amount of the item. Useful for stackable items like gold, reagents, and arrows.
+
+```typescript
+const item = client.findObject(0x40001234);
+if (item && item.amount > 5) {
+  client.sysMsg(`Amount: ${item.amount}`);
+}
+```
+
+---
+
+#### container
+
+```typescript
+container: number;
+```
+
+The serial of the parent container that holds this item. Returns `0` if the item is on the ground or has no container.
+
+```typescript
+const axeType = 0x0f49;
+const item = client.findType(axeType);
+if (item && item.container > 0) {
+  client.sysMsg('The item is inside a container');
+}
+```
+
+---
+
+#### contents
+
+```typescript
+contents: undefined | Item[];
+```
+
+An array of `Item` objects directly inside this item, if it is a container. Returns `undefined` for non-container items.
+
+```typescript
+const itemList = player.backpack.contents;
+if (itemList) {
+  for (const item of itemList) {
+    if (item.contents && item.contents.length > 0) {
+      console.log("This item is a sub-container!");
+    }
+  }
+}
+```
+
+<Note>
+  `contents` only returns direct children. To search nested containers recursively, use `client.findType()` with a `range` parameter controlling search depth.
+</Note>
+
+---
+
+#### layer
+
+```typescript
+layer: Layers;
+```
+
+The equipment layer of the item, if it is equipped on a mobile. Use the `Layers` enum to compare values.
+
+```typescript
+const robe = client.findItemOnLayer(player, Layers.Robe);
+if (robe) {
+  console.log(robe.layer); // Layers.Robe
+}
+```
+
+---
+
+### Inherited from Entity
+
+| Property | Type | Description |
+|---|---|---|
+| `serial` | `number` | Unique entity serial. |
+| `name` | `string` | Display name. Empty string if not yet known to the client. |
+| `graphic` | `number` | Graphic/art ID. Returns 0 if off-screen. |
+| `hue` | `number` | Hue/colour. Returns 0 if off-screen. |
+| `hits` | `number` | Durability current value (returns 0 if unknown). |
+| `maxHits` | `number` | Maximum durability (returns 0 if unknown). |
+| `isHidden` | `boolean` | Whether the item is hidden. |
+| `x` | `number` | X coordinate (0 if off-screen or in a container). |
+| `y` | `number` | Y coordinate (0 if off-screen or in a container). |
+| `z` | `number` | Z coordinate (0 if off-screen or in a container). |
+| `direction` | `number` | Direction value. Relevant for some multi-tile items. |
+
+---
+
+## Examples
+
+### Equip an item by graphic
+
+```typescript
+const axe = client.findType(0x0f49); // Battle Axe graphic
+if (axe) {
+  player.equip(axe);
+}
+```
+
+---
+
+### Read an item's OPL (Object Property List)
+
+```typescript
+const sword = client.findType(0x0f5e);
+if (sword) {
+  const opl = client.queryItemOPL(sword);
+  console.log(opl.name);
+  console.log(opl.properties);
+}
+```
+
+---
+
+### Iterate over backpack contents
+
+```typescript
+const items = player.backpack.contents ?? [];
+for (const item of items) {
+  console.log(`${item.name} (serial: 0x${item.serial.toString(16)})`);
+}
+```
+
+---
+
+### Check item name
+
+```typescript
+const entity = client.findObject(player.equippedItems.robe);
+if (entity) {
+  console.log(entity.name); // e.g. "Hooded Shroud of Shadows"
+}
+```

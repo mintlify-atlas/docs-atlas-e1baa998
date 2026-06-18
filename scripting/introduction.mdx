@@ -1,0 +1,124 @@
+---
+title: 'ClassicUO Web Scripting Engine: Overview and Setup'
+sidebarTitle: 'Introduction'
+description: 'Learn how the ClassicUO Web scripting engine works, from TypeScript and Blockly modes to sandboxed execution and shard-level access controls.'
+---
+
+ClassicUO Web ships a built-in scripting engine that lets you automate actions inside Ultima Online directly from your browser. Scripts run inside the Web Assistant panel alongside your game session, giving you programmatic access to your character, the game world, journal, targeting, and more — no external tools or client modifications required.
+
+## What is Scripting?
+
+The scripting engine exposes a set of global variables and namespaces that mirror the live state of your UO session. You can read your character's position, stats, and equipment; search for nearby mobiles and items; interact with context menus and targeting cursors; inspect the journal; and control pacing with timed delays — all from a script that runs in lock-step with the game loop.
+
+Scripts execute **synchronously in a loop**. Each iteration of your script runs to completion, and you use `sleep()` to introduce deliberate pauses between actions. This model makes scripts easy to reason about and keeps behavior predictable.
+
+<Note>
+  The scripting engine runs inside a **sandboxed environment** within the Web Assistant. Scripts cannot access your browser's filesystem, make arbitrary network requests, or interact with anything outside the ClassicUO Web scripting API.
+</Note>
+
+## Script Modes
+
+The engine supports two authoring modes, letting you choose whichever fits your workflow:
+
+<CardGroup cols={2}>
+  <Card title="TypeScript" icon="code">
+    Write scripts in TypeScript — they are compiled to JavaScript at runtime before execution. You get full type-checking, autocompletion, and access to all global variables and namespaces without any import statements.
+  </Card>
+  <Card title="Blockly (Visual)" icon="puzzle-piece">
+    Assemble scripts visually using drag-and-drop Blockly blocks. Ideal for players who prefer a no-code approach. Blockly scripts compile to the same underlying engine as TypeScript.
+  </Card>
+</CardGroup>
+
+## Accessing the Scripting Window
+
+The scripting window is embedded in the **Web Assistant** panel. To open it:
+
+<Steps>
+  <Step title="Open the Web Assistant">
+    Click the Web Assistant button in the ClassicUO Web toolbar. The panel will slide open alongside your game view.
+  </Step>
+  <Step title="Navigate to the Scripting tab">
+    Select the **Scripting** tab inside the Web Assistant. You'll see the code editor (TypeScript mode) or block canvas (Blockly mode) along with a console output area below it.
+  </Step>
+  <Step title="Write or paste your script">
+    Type your script in the editor. All global variables such as `player`, `client`, and `journal` are available immediately — no imports needed.
+  </Step>
+  <Step title="Run the script">
+    Click **Run** to start execution. Log output and any errors appear in the console area beneath the editor. Click **Stop** to halt a running script at any time.
+  </Step>
+</Steps>
+
+## Shard Rules
+
+Shard owners can control whether scripting is available to players on their shard. This is configured via **ShardRules** and supports three settings:
+
+| Value | Behaviour |
+| :--- | :--- |
+| `enabled` | Both TypeScript and Blockly scripting are fully available to all players. |
+| `disabled` | Scripting is completely disabled; the scripting tab is hidden. |
+| `disable-ts` | Blockly (visual) scripting remains available, but the TypeScript editor is disabled. |
+
+<Warning>
+  If you cannot see the scripting tab in the Web Assistant, the shard owner may have disabled scripting via ShardRules. Contact the shard administrator for details.
+</Warning>
+
+## Hello World Example
+
+The simplest possible script logs a greeting and then reads a live value from the `player` global:
+
+```typescript
+// Log a greeting to the console
+log('Hello, World!');
+
+// Access the current player's name
+log(`Playing as: ${player.name}`);
+
+// Read the player's current hit points
+log(`HP: ${player.hp} / ${player.maxHp}`);
+```
+
+After clicking **Run**, all three lines appear in the console area below the scripting window almost instantly.
+
+## A Looping Script Example
+
+Most useful scripts run in a loop and use `sleep()` to pace their actions. Here is a script that periodically checks whether the player is dead and bails out if so:
+
+```typescript
+while (true) {
+  // Safety check — stop the script if the player dies
+  if (player.isDead) {
+    exit("Stopping — player is dead.");
+  }
+
+  // Use a skill, then wait 11 seconds before the next attempt
+  player.useSkill(Skills.Meditation);
+  sleep(11000);
+}
+```
+
+<Tip>
+  All global variables (`client`, `player`, `journal`, `ignoreList`, `target`, `worldMap`, `popupMenu`) and all namespaces (`Client`, `Entity`, `Mobile`, `Item`, `Gump`, `enums`, etc.) are available in every script without any import statement.
+</Tip>
+
+## Explore the API
+
+<CardGroup cols={2}>
+  <Card title="Global Variables & Functions" icon="globe" href="/scripting/globals">
+    Reference for every pre-injected global variable and built-in function available in all scripts.
+  </Card>
+  <Card title="Player Namespace" icon="user" href="/scripting/namespaces/player">
+    Full API for reading and controlling your character — stats, skills, equipment, movement, and actions.
+  </Card>
+  <Card title="Client Namespace" icon="desktop" href="/scripting/namespaces/client">
+    Interact with the UO client world: search for entities, send messages, and control the camera.
+  </Card>
+  <Card title="Built-in Functions" icon="function" href="/scripting/functions">
+    Detailed reference for `sleep()`, `log()`, and `exit()` with parameter tables and examples.
+  </Card>
+  <Card title="Enums" icon="list" href="/scripting/enums">
+    All enumeration values used across the scripting API — graphic IDs, skill names, directions, and more.
+  </Card>
+  <Card title="Target Namespace" icon="crosshairs" href="/scripting/namespaces/target">
+    Create and respond to targeting cursors for objects, mobiles, and ground tiles.
+  </Card>
+</CardGroup>

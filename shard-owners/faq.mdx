@@ -1,0 +1,65 @@
+---
+title: 'Shard Owner FAQ: Game Proxy, IP Handling, and Setup'
+sidebarTitle: 'Shard FAQ'
+description: 'Common shard owner questions answered: game proxy, shared player IPs, WebIdentity packet, custom assets, open-source status, and getting your shard listed.'
+---
+
+This page collects the most common questions from shard owners about how ClassicUO Web works, how to get your shard listed, what customisation is possible, and how the network infrastructure affects your players. If you do not find your answer here, join the [#for-shard-owners](https://discord.com/channels/458277173208547350/1002460906862690334) channel on Discord.
+
+<Accordion title="How can I add my shard to the server list?">
+  The shard application process is currently in **BETA**.
+
+  Submit a [shard application](https://play.classicuo.org/shard-management/shard-application) to have your shard added to the server list. Once approved, you will receive access to the [Shard Management](https://play.classicuo.org/shard-management) portal where you can configure your listing, upload assets, and set shard rules.
+</Accordion>
+
+<Accordion title="Will ClassicUO Web be open-source?">
+  While the [desktop ClassicUO client](https://github.com/ClassicUO/ClassicUO) will always be open-source, there are no plans to open-source the web client at this time. There are several reasons for this decision:
+
+  1. **Discovery:** ClassicUO Web aims to be the "OSRS of UO" — a single destination where players can browse and join shards with one click. A centralised server listing that also serves as the entry point for playing raises the visibility of shards that would otherwise go unnoticed.
+
+  2. **Focus:** The web client is technically challenging to build and maintain, spanning deep WebAssembly/C# runtime interop issues through to complex web infrastructure (backend APIs, CDNs, geographically distributed servers, cloud asset storage). The team prefers to spend limited free-time hours improving and maintaining the official client rather than supporting third-party forks.
+
+  3. **Cheating:** A closed-source client is an important layer in the anti-cheat stack. Shards that support the [WebIdentity packet](https://github.com/ClassicUO/packets/?tab=readme-ov-file#packets) can validate that players are running a genuine client and use [Shard Rules](shard-owners/shard-rules) to control exactly which features the web client exposes.
+</Accordion>
+
+<Accordion title="I have custom MUL/UOP files for my shard. Can I use them with the web client?">
+  Yes. The ClassicUO Web patching system was built specifically to support shards with modified assets. You upload your files through the browser-based patcher in Shard Management, the tool generates VCDIFF binary-delta patches (automatically converting UOP files to MUL for smaller deltas), and publishes them to the global CDN.
+
+  See the [Patching guide](shard-owners/patching) for the full step-by-step walkthrough.
+</Accordion>
+
+<Accordion title="I have a customised ClassicUO C# client for my shard. How can I modify the web client?">
+  It depends on the nature of your customisations:
+
+  - **If your client disables certain ClassicUO features** — you likely only need [Shard Rules](shard-owners/shard-rules). Rules let you turn off scripting, disable assistant features, and lock or override any game-profile option without touching client code.
+
+  - **If your client has extensive C# changes for custom features** — those changes are unlikely to be compatible with the web client. In general, ClassicUO Web stays close to stock ClassicUO apart from the web-only assistant features.
+
+  A TypeScript modding API is in development that will allow shard owners to customise the client in a sandboxed environment. The API is being designed to be expressive while remaining secure against cheaters. See the [Modding Overview](modding/overview) for the current state of that work.
+</Accordion>
+
+<Accordion title="Why is there a game proxy? Is there a DDOS risk?">
+  Web security standards prevent browsers from opening direct TCP connections to arbitrary servers. To connect to your shard, ClassicUO Web proxies the TCP connection over WebSockets using a component called the **GameProxy**.
+
+  The GameProxy is hosted on [Fly.io](https://fly.io), an edge-compute platform with servers in [30+ regions worldwide](https://fly.io/docs/reference/regions/) behind an **anycast IP address**. When you or your players ping the proxy address, you see Fly.io's anycast IP — not the IP of a single machine. Attempting to DDOS the anycast address is equivalent to attempting to DDOS the entire Fly.io provider network.
+
+  Additionally, the proxy uses an internal Shard ID when establishing login and game socket connections, so **your shard's real IP is never exposed to players**. If your shard is only reachable through ClassicUO Web and you do not publish the IP publicly, it is protected from targeted DDOS attempts.
+</Accordion>
+
+<Accordion title="Why do web client users appear to share the same IP address?">
+  The GameProxy connects each player through the **closest Fly.io region** to the shard. Multiple players connecting from the same geographic area (e.g. all from the New York region) will exit the proxy from the same outgoing IP address.
+
+  This can cause problems if your shard enforces IP-based connection limits, since many legitimate players may appear to come from a single IP.
+
+  **Solution:** Enable the [WebIdentity packet](https://github.com/ClassicUO/packets/?tab=readme-ov-file#packets) in your Shard Management settings. When active, the web client sends each player's real IP address alongside the connection, allowing your server software to apply per-player IP limits correctly.
+</Accordion>
+
+<Accordion title="What is the WebIdentity packet?">
+  The WebIdentity packet is a custom UO network packet defined in the [ClassicUO packets repository](https://github.com/ClassicUO/packets/?tab=readme-ov-file#packets). It serves two purposes:
+
+  1. **Real IP delivery** — It carries the player's true client IP through the game proxy to your shard server, solving the shared-IP problem described above.
+
+  2. **Client authenticity verification** — It allows your server software to verify that the connecting client is a genuine, unmodified ClassicUO Web instance. Combined with [Shard Rules](shard-owners/shard-rules), this gives you a high degree of confidence that the rules you configure are actually being enforced.
+
+  You can enable the WebIdentity packet in the **Shard Management** portal for your shard. Your server emulator needs to be updated to read and act on the packet data.
+</Accordion>

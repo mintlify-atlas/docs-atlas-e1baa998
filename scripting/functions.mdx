@@ -1,0 +1,148 @@
+---
+title: "ClassicUO Web Built-in Scripting Functions Reference"
+sidebarTitle: "Functions"
+description: "Reference for sleep, log, and exit — the three built-in global functions in ClassicUO Web scripts for timing, console output, and early termination."
+---
+
+ClassicUO Web scripts have access to three built-in global functions that are available without any import. These functions handle common scripting needs — pausing execution, printing debug output, and stopping a script early. They complement the `player`, `client`, `target`, and `gump` namespaces and can be called freely anywhere in your script.
+
+---
+
+## `sleep`
+
+```typescript
+function sleep(ms: number): void;
+```
+
+Delays script execution for a given number of milliseconds. The script is suspended for (at least) the specified duration before continuing. This is essential for any polling loop that repeatedly checks game state, since tight loops without a delay can cause performance problems.
+
+> **Note:** The delay timing for long durations is not guaranteed to be exact due to the nature of the browser's JavaScript event loop.
+
+<ParamField path="ms" type="number" required>
+  The number of milliseconds to pause execution. For example, `500` pauses for
+  half a second and `10000` pauses for ten seconds.
+</ParamField>
+
+### Example — polling loop with sleep
+
+```typescript
+while (true) {
+  if (player.hits < 50) {
+    player.useSkill(Skills.Healing);
+  }
+  sleep(500); // wait 500 ms before checking again
+}
+```
+
+### Example — delay between skill uses
+
+```typescript
+player.useSkill(Skills.Anatomy);
+sleep(10000); // sleep 10 seconds before using the next skill
+player.useSkill(Skills.Meditation);
+```
+
+---
+
+## `log`
+
+```typescript
+function log(...args: any[]): void;
+```
+
+Logs one or more values to the console area displayed below the scripting window. Works like `console.log` in a browser, but outputs to the in-game script console rather than the browser's developer tools. You can pass any number of arguments of any type; objects and arrays will be printed in an inspectable format.
+
+<ParamField path="...args" type="any[]" required>
+  One or more values to print to the console. Strings, numbers, booleans,
+  objects, and arrays are all accepted.
+</ParamField>
+
+### Example — simple string
+
+```typescript
+log('Hi there!');
+```
+
+### Example — template literal with player name
+
+```typescript
+log(`My name is ${player.name}`);
+```
+
+### Example — multiple values in one call
+
+```typescript
+log('Player name:', player.name);
+log('HP:', player.hits, '/', player.hitsMax);
+```
+
+### Example — inspecting an equipped item
+
+```typescript
+log(`My helmet is`, player.equippedItems.helmet);
+```
+
+---
+
+## `exit`
+
+```typescript
+function exit(reason?: string): void;
+```
+
+Immediately stops the currently running script. Unlike throwing an error, `exit` performs a clean termination — the script stops without displaying an uncaught-exception message. An optional `reason` string can be provided; if supplied it will be displayed in the console area so you can see why the script stopped.
+
+This is most useful as an early-return guard at the top of your script to validate preconditions before doing any work.
+
+<ParamField path="reason" type="string">
+  An optional human-readable message explaining why the script was stopped. The
+  message will appear in the in-game script console.
+</ParamField>
+
+### Example — guard against dead player
+
+```typescript
+if (player.isDead) {
+  exit("Failed, I'm dead!");
+}
+```
+
+### Example — guard against missing backpack
+
+```typescript
+if (!player.backpack) {
+  exit('No backpack found — cannot continue.');
+}
+// script continues here only if a backpack exists
+```
+
+### Example — conditional exit inside a loop
+
+```typescript
+while (true) {
+  if (player.hits <= 0) {
+    exit('Player died, stopping script.');
+  }
+  if (player.hits < 30) {
+    player.useSkill(Skills.Healing);
+  }
+  sleep(500);
+}
+```
+
+---
+
+<CardGroup cols={2}>
+  <Card title="Globals" icon="globe" href="/scripting/globals">
+    Explore the global variables — `player`, `client`, `target`, and more
+  </Card>
+  <Card title="Enums" icon="list" href="/scripting/enums">
+    Constants for spells, layers, directions, and more
+  </Card>
+  <Card title="Introduction" icon="book-open" href="/scripting/introduction">
+    Get started with scripting in ClassicUO Web
+  </Card>
+  <Card title="Player Namespace" icon="user" href="/scripting/namespaces/player">
+    Read player stats, equipment, skills, and more
+  </Card>
+</CardGroup>

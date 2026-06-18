@@ -1,0 +1,635 @@
+---
+title: 'Player Class: Character Stats, Skills, and Actions'
+sidebarTitle: 'Player'
+description: 'Reference for the Player class — access stats, resistances, skills, equipped items, and perform in-game actions via the global player variable.'
+---
+
+The `Player` class represents your currently logged-in character and is accessible everywhere in your scripts as the global `player` variable. It extends [`Mobile`](/scripting/namespaces/mobile), inheriting all entity and mobile properties, and adds player-specific stats such as resistances, skill values, gold, weight, and combat abilities.
+
+```typescript
+while (true) {
+  if (player.hits < 50) {
+    player.say('I need healing!');
+  }
+  sleep(500);
+}
+```
+
+<Note>
+  `player` is always available as a global variable when a script is running in-game. It extends `Mobile`, so all Mobile and Entity properties are also available.
+</Note>
+
+---
+
+## Properties
+
+### Core Stats
+
+| Property | Type | Description |
+|---|---|---|
+| `hits` | `number` | Current hit points. Returns 0 if entity is off-screen. |
+| `maxHits` | `number` | Maximum hit points. |
+| `mana` | `number` | Current mana (real value for the player). |
+| `maxMana` | `number` | Maximum mana. |
+| `stamina` | `number` | Current stamina (real value for the player). |
+| `maxStamina` | `number` | Maximum stamina. |
+| `strength` | `number` | Strength attribute. |
+| `intelligence` | `number` | Intelligence attribute. |
+| `dexterity` | `number` | Dexterity attribute. |
+| `statsCap` | `number` | The player's stat cap. |
+
+### Identity & Economy
+
+| Property | Type | Description |
+|---|---|---|
+| `serial` | `number` | Unique serial of the player. |
+| `name` | `string` | Character name. |
+| `gold` | `number` | Amount of gold in the player's pack. |
+| `weight` | `number` | Current carried weight. |
+| `weightMax` | `number` | Maximum carry weight. |
+| `map` | `number` | Current map/facet index. |
+| `tithingPoints` | `number` | Current tithing points. |
+| `luck` | `number` | Luck stat. |
+| `followers` | `number` | Current number of followers. |
+| `maxFollowers` | `number` | Maximum allowed followers. |
+
+### Resistances
+
+| Property | Type | Description |
+|---|---|---|
+| `physicalResistance` | `number` | Physical resistance value. |
+| `fireResistance` | `number` | Fire resistance value. |
+| `coldResistance` | `number` | Cold resistance value. |
+| `poisonResistance` | `number` | Poison resistance value. |
+| `energyResistance` | `number` | Energy resistance value. |
+| `maxPhysicResistence` | `number` | Maximum physical resistance cap. |
+| `maxFireResistence` | `number` | Maximum fire resistance cap. |
+| `maxColdResistence` | `number` | Maximum cold resistance cap. |
+| `maxPoisonResistence` | `number` | Maximum poison resistance cap. |
+| `maxEnergyResistence` | `number` | Maximum energy resistance cap. |
+
+### Combat & Abilities
+
+| Property | Type | Description |
+|---|---|---|
+| `damageMin` | `number` | Minimum weapon damage. |
+| `damageMax` | `number` | Maximum weapon damage. |
+| `damageIncrease` | `number` | Damage increase bonus. |
+| `hitChanceIncrease` | `number` | Hit chance increase bonus. |
+| `defenseChanceIncrease` | `number` | Defense chance increase bonus. |
+| `maxDefenseChanceIncrease` | `number` | Max defense chance increase cap. |
+| `swingSpeedIncrease` | `number` | Swing speed increase bonus. |
+| `spellDamageIncrease` | `number` | Spell damage increase bonus. |
+| `fasterCasting` | `number` | Faster casting bonus. |
+| `fasterCastRecovery` | `number` | Faster cast recovery bonus. |
+| `lowerManaCost` | `number` | Lower mana cost bonus. |
+| `lowerReagentCost` | `number` | Lower reagent cost bonus. |
+| `primaryAbility` | `Abilities` | Currently set primary combat ability. |
+| `secondaryAbility` | `Abilities` | Currently set secondary combat ability. |
+
+### Status Flags
+
+| Property | Type | Description |
+|---|---|---|
+| `isPoisoned` | `boolean` | `true` if the player is currently poisoned (green hue). |
+| `isYellowHits` | `boolean` | `true` if the player's health bar is yellow (Invulnerable). |
+| `isHidden` | `boolean` | `true` if the player is hidden. |
+| `isParalyzed` | `boolean` | `true` if the player is paralyzed. |
+| `isDead` | `boolean` | `true` if the player is dead. |
+| `isFemale` | `boolean` | `true` if the player is female. |
+| `inWarMode` | `boolean` | `true` if the player is in war mode. |
+
+### Equipment & Inventory
+
+The `backpack` property returns the player's top-level backpack container. `equippedItems` exposes every equipment slot as a named property.
+
+```typescript
+backpack: undefined | Item;
+```
+
+```typescript
+equippedItems: {
+  arms: Item;      beard: Item;    bracelet: Item; cloak: Item;
+  earrings: Item;  face: Item;     gloves: Item;   hair: Item;
+  helmet: Item;    legs: Item;     mount: Item;    necklace: Item;
+  oneHanded: Item; pants: Item;    ring: Item;     robe: Item;
+  shirt: Item;     shoes: Item;    skirt: Item;    talisman: Item;
+  torso: Item;     tunic: Item;    twoHanded: Item; waist: Item;
+}
+```
+
+**Example — move your robe to your backpack:**
+
+```typescript
+if (player.equippedItems.robe) {
+  player.moveItem(player.equippedItems.robe, player.backpack);
+}
+```
+
+### Position (inherited from Entity)
+
+| Property | Type | Description |
+|---|---|---|
+| `x` | `number` | Current X coordinate. |
+| `y` | `number` | Current Y coordinate. |
+| `z` | `number` | Current Z coordinate. |
+| `graphic` | `number` | Graphic/body ID of the player. |
+| `hue` | `number` | Hue/color of the player. |
+| `notoriety` | `Notorieties` | Notoriety status (Innocent, Gray, etc.). |
+| `direction` | `number` | Facing direction. Compare using the `Directions` enum. |
+
+---
+
+## Methods
+
+### say()
+
+```typescript
+say(message: string, hue?: number): void
+```
+
+Sends a chat message as your character, with an optional hue.
+
+<ParamField path="message" type="string" required>
+  The text to say in chat.
+</ParamField>
+<ParamField path="hue" type="number">
+  Optional hue/colour for the message text.
+</ParamField>
+
+```typescript
+player.say('Hello there!');
+```
+
+---
+
+### walk()
+
+```typescript
+walk(direction: Directions): boolean
+```
+
+Walk or turn a single step in the given direction. Returns `true` if the character can walk.
+
+```typescript
+player.walk(Directions.North);
+```
+
+---
+
+### run()
+
+```typescript
+run(direction: Directions): boolean
+```
+
+Run a single step in the given direction. Returns `true` if the character can run.
+
+```typescript
+player.run(Directions.South);
+```
+
+---
+
+### use()
+
+```typescript
+use(serial: SerialOrEntity): void
+```
+
+Double-clicks (uses) an object.
+
+<ParamField path="serial" type="SerialOrEntity" required>
+  The item or entity to use.
+</ParamField>
+
+```typescript
+const dagger = client.findType(0x0f52); // Dagger graphic ID
+player.use(dagger);
+```
+
+---
+
+### useType()
+
+```typescript
+useType(graphic: number, hue?: number, sourceSerial?: SerialOrEntity, range?: number): boolean
+```
+
+Finds and uses the first object matching the graphic (and optional hue, source, range).
+
+```typescript
+const myFriend = 0x217ded;
+player.useType(0xe21); // Bandage type
+target.wait(5000);
+target.entity(myFriend);
+```
+
+---
+
+### useItemInHand()
+
+```typescript
+useItemInHand(): void
+```
+
+Uses the item in your left hand first; falls back to the right hand.
+
+```typescript
+player.useItemInHand();
+```
+
+---
+
+### useLastObject()
+
+```typescript
+useLastObject(): void
+```
+
+Re-uses the last object you double-clicked.
+
+```typescript
+player.useLastObject();
+```
+
+---
+
+### equip()
+
+```typescript
+equip(serial: SerialOrEntity): void
+```
+
+Attempts to equip an item.
+
+```typescript
+const axe = client.findType(0x0f49); // Axe graphic ID
+player.equip(axe);
+```
+
+---
+
+### moveItem()
+
+```typescript
+moveItem(
+  serial: SerialOrEntity,
+  container: SerialOrEntity,
+  x?: number,
+  y?: number,
+  z?: number,
+  amount?: number
+): number
+```
+
+Moves an object from one container to another.
+
+<ParamField path="serial" type="SerialOrEntity" required>The item to move.</ParamField>
+<ParamField path="container" type="SerialOrEntity" required>The destination container.</ParamField>
+<ParamField path="x" type="number">Optional X placement within the container.</ParamField>
+<ParamField path="y" type="number">Optional Y placement within the container.</ParamField>
+<ParamField path="z" type="number">Optional Z placement within the container.</ParamField>
+<ParamField path="amount" type="number">Amount to move (for stackable items).</ParamField>
+
+```typescript
+if (player.equippedItems.robe) {
+  player.moveItem(player.equippedItems.robe, player.backpack);
+}
+```
+
+---
+
+### moveType()
+
+```typescript
+moveType(
+  graphic: number,
+  src: SerialOrEntity,
+  dest: SerialOrEntity,
+  x?: number,
+  y?: number,
+  z?: number,
+  hue?: number,
+  amount?: number,
+  range?: number
+): number
+```
+
+Moves an object of a specific graphic type between containers.
+
+```typescript
+player.moveType(0x0f52, player.backpack, bag);
+```
+
+---
+
+### moveItemOnGroundOffset()
+
+```typescript
+moveItemOnGroundOffset(
+  serial: SerialOrEntity,
+  x?: number,
+  y?: number,
+  z?: number,
+  amount?: number
+): number
+```
+
+Moves an item on the ground using an offset from its current position.
+
+```typescript
+const targetInfo = target.query();
+if (targetInfo) {
+  player.moveItemOnGroundOffset(targetInfo, 1, 0, 0); // Move item one tile east
+}
+```
+
+---
+
+### attack()
+
+```typescript
+attack(serial: SerialOrEntity): void
+```
+
+Attacks a mobile.
+
+```typescript
+player.attack(target.lastSerial);
+```
+
+---
+
+### cast()
+
+```typescript
+cast(spell: any): void
+```
+
+Casts a spell.
+
+```typescript
+player.cast(Spells.Agility);
+target.wait();
+target.entity(player);
+```
+
+---
+
+### castTo()
+
+```typescript
+castTo(spell: any, serial: SerialOrEntity, timeout?: number): void
+```
+
+Casts a spell and automatically targets the given entity.
+
+```typescript
+player.castTo(Spells.Heal, player);
+```
+
+---
+
+### useSkill()
+
+```typescript
+useSkill(skill: any, target?: SerialOrEntity, timeout?: number): void
+```
+
+Activates a skill, optionally targeting an entity.
+
+```typescript
+player.useSkill(Skills.Meditation);
+```
+
+---
+
+### useVirtue()
+
+```typescript
+useVirtue(virtue: any, target?: SerialOrEntity, timeout?: number): void
+```
+
+Activates a virtue, optionally targeting an entity.
+
+```typescript
+player.useVirtue(Virtues.Honor);
+```
+
+---
+
+### getSkill()
+
+```typescript
+getSkill(skill: Skills): undefined | object
+```
+
+Returns the current values for a specific skill. The `value` is stored as an integer — e.g. `74.6` skill becomes `746`.
+
+```typescript
+const anatomySkill = player.getSkill(Skills.Anatomy).value;
+```
+
+---
+
+### getAllSkills()
+
+```typescript
+getAllSkills(): undefined | object[]
+```
+
+Returns an array of all skill value objects.
+
+```typescript
+const skills = player.getAllSkills();
+console.log(skills[0].value); // Print Alchemy skill value
+```
+
+---
+
+### setSkillLock()
+
+```typescript
+setSkillLock(skill: Skills, lock: SkillLock): void
+```
+
+Sets the lock state of a skill (Up, Down, or Locked).
+
+```typescript
+player.setSkillLock(Skills.Anatomy, SkillLock.Down);
+```
+
+---
+
+### setAbility()
+
+```typescript
+setAbility(primary: boolean, active: boolean): void
+```
+
+Toggles a primary or secondary combat ability on or off.
+
+<ParamField path="primary" type="boolean" required>`true` for primary ability, `false` for secondary.</ParamField>
+<ParamField path="active" type="boolean" required>`true` to activate, `false` to deactivate.</ParamField>
+
+```typescript
+player.setAbility(true, false);  // Turn primary ability off
+player.setAbility(false, true);  // Turn secondary ability on
+```
+
+---
+
+### hasBuffDebuff()
+
+```typescript
+hasBuffDebuff(buffID: BuffDebuffs): boolean
+```
+
+Returns `true` if the player currently has the given buff or debuff active.
+
+---
+
+### waitForBuffDebuff()
+
+```typescript
+waitForBuffDebuff(buffId: BuffDebuffs, timeoutMs?: number): null | boolean
+```
+
+Waits until the specified buff/debuff appears or the timeout is reached.
+
+---
+
+### toggleWarMode()
+
+```typescript
+toggleWarMode(): void
+```
+
+Toggles war mode on or off.
+
+```typescript
+player.toggleWarMode();
+```
+
+---
+
+### toggleFlying()
+
+```typescript
+toggleFlying(): void
+```
+
+Toggles flying (Gargoyle characters only).
+
+```typescript
+player.toggleFlying();
+```
+
+---
+
+### fly() / land()
+
+```typescript
+fly(): void
+land(): void
+```
+
+Engage or disengage flight for Gargoyle characters.
+
+```typescript
+player.fly();
+// ... later
+player.land();
+```
+
+---
+
+### openDoor()
+
+```typescript
+openDoor(): void
+```
+
+Uses the door directly in front of the player.
+
+```typescript
+player.openDoor();
+```
+
+---
+
+### click()
+
+```typescript
+click(serial: SerialOrEntity): void
+```
+
+Simulates a single-click on an object (shows name overhead).
+
+```typescript
+player.click(player);
+```
+
+---
+
+### moveTypeOnGroundOffset()
+
+```typescript
+moveTypeOnGroundOffset(
+  graphic: number,
+  src: SerialOrEntity,
+  x?: number,
+  y?: number,
+  z?: number,
+  hue?: number,
+  amount?: number,
+  range?: number
+): number
+```
+
+Moves an object of a specific graphic type from a source container onto the ground using an offset position.
+
+```typescript
+player.moveTypeOnGroundOffset(0x0f52, player.backpack);
+```
+
+---
+
+### dressKr()
+
+```typescript
+dressKr(items: (number | Item)[]): void
+```
+
+Dresses the given items using the KR (Kingdom Reborn) dress/undress system.
+
+<ParamField path="items" type="(number | Item)[]" required>Array of item serials or Item objects to dress.</ParamField>
+
+---
+
+### undressKr()
+
+```typescript
+undressKr(layers: Layers[]): void
+```
+
+Undresses items on the specified layers using the KR dress/undress system.
+
+<ParamField path="layers" type="Layers[]" required>Array of layer values to undress.</ParamField>
+
+---
+
+### bow() / salute()
+
+```typescript
+bow(): void
+salute(): void
+```
+
+Perform the **Bow** or **Salute** emote.
+
+```typescript
+player.bow();
+player.salute();
+```

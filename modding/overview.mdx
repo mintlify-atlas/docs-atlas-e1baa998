@@ -1,0 +1,64 @@
+---
+title: 'ClassicUO Web Modding SDK: Build Custom UI Overlays'
+sidebarTitle: 'Overview'
+description: 'Learn how the @classicuo/modding SDK lets shard owners build React-based UI overlays that load at runtime inside the ClassicUO Web client.'
+---
+
+The ClassicUO Web Modding SDK (`@classicuo/modding`) gives shard owners a first-class way to extend the browser-based Ultima Online client with custom React UI overlays. Mods are ordinary JavaScript bundles — hosted anywhere over HTTPS — that the client downloads and executes at login time, sandboxed inside the game viewport. Because they run as React trees mounted directly into the page, mods have full access to modern CSS, component libraries, and the real-time game API exposed by the SDK.
+
+## How It Works
+
+When a player connects to a shard, the ClassicUO Web client fetches that shard's `ClientManifest`. The manifest includes an optional `mods` array: a list of HTTPS URLs pointing to pre-built JavaScript bundles. Each bundle is loaded in order and is expected to call `mountInterfaceRoot(App)` to attach its React component tree to the game DOM.
+
+```
+Client boots
+  └─ Fetches ClientManifest
+       └─ manifest.mods[] → array of bundle URLs
+            └─ Each bundle loaded → mountInterfaceRoot(<App />) called
+                 └─ React tree mounted over the game canvas
+```
+
+The game runtime exposes a collection of globals — `addEventListener`, `client`, `player`, `sendWebGumpResponse`, and more — which the SDK types and re-exports so your TypeScript code stays fully type-safe.
+
+## Key Concepts
+
+**`mountInterfaceRoot(App)`** is the single entry-point for every mod. Call it once at the top level of your bundle with a React function component. The SDK handles both the browser DOM environment and the in-game sandbox environment automatically.
+
+**Events** let your mod react to in-game activity such as journal messages, world resets, player creation, and server-driven WebGumps. Use `addEventListener` and `removeEventListener` from `@classicuo/modding`.
+
+**WebGumps** are a bidirectional communication channel between your shard's server software and the mod UI. The server sends typed JSON payloads; your mod renders them and can send responses back. The `useWebGump` React hook makes this straightforward.
+
+**ShardRules** let the shard owner restrict or configure client behaviour — scripting permissions, feature flags, and game option overrides — all validated with Zod schemas at manifest load time.
+
+## Package Details
+
+| Field | Value |
+|---|---|
+| Package name | `@classicuo/modding` |
+| Current version | `0.0.34` |
+| License | MIT |
+| Peer dependencies | `react ^17`, `react-dom ^17`, `styled-components ^5` |
+| ESM entry | `dist/esm/index.js` |
+| CJS entry | `dist/cjs/index.js` |
+| Types subpath | `@classicuo/modding/types` |
+
+<Note>
+  Mods are loaded in a sandboxed context inside the ClassicUO Web client. Direct DOM access outside the mounted root is not guaranteed across all runtime environments. Use the provided SDK primitives instead of raw `document` queries wherever possible.
+</Note>
+
+## Explore the SDK
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="bolt" href="/modding/quickstart">
+    Build and host your first mod in minutes using the modding-example template.
+  </Card>
+  <Card title="API Reference" icon="code" href="/modding/api-reference">
+    Full reference for events, the Client object, the Player object, and helper functions.
+  </Card>
+  <Card title="WebGumps" icon="window" href="/modding/web-gumps">
+    Learn how to build server-driven React UIs with the useWebGump hook.
+  </Card>
+  <Card title="Types" icon="shapes" href="/modding/types">
+    Zod-validated TypeScript types for shards, manifests, patches, rules, and profiles.
+  </Card>
+</CardGroup>

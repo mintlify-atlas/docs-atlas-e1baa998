@@ -1,0 +1,189 @@
+---
+title: 'Journal Class: Monitor and React to In-Game Messages'
+sidebarTitle: 'Journal'
+description: 'Reference for the Journal class — check and wait for in-game messages by author or content using containsText, waitForText, and related helpers.'
+---
+
+The `Journal` class provides access to the in-game text journal — the stream of messages that appear in the chat/system area. It is available globally as `journal`. Use it to detect when specific messages appear, coordinate skill use around system responses, and drive reactive logic in your scripts.
+
+Common uses include:
+
+- Checking if the journal contains a specific string right now
+- Waiting for a system or NPC message to appear before continuing
+- Branching on which of several possible messages appears first
+
+<Note>
+  Journal entries persist between calls. Use `journal.clear()` before a sequence that needs to detect fresh messages — otherwise an old matching entry could trigger a false positive.
+</Note>
+
+---
+
+## Methods
+
+### clear()
+
+```typescript
+clear(): void
+```
+
+Clears the entire journal history. Any subsequent calls to `containsText` or `waitForText` will only match messages that arrive after the clear.
+
+```typescript
+player.say('Hello there');
+journal.waitForText('Hello there'); // Succeeds immediately (text already there)
+journal.clear();
+journal.waitForText('Hello there'); // Times out — journal is now empty
+```
+
+---
+
+### containsText()
+
+```typescript
+containsText(text: string, author?: string): boolean
+```
+
+Checks **right now** whether the journal contains a specific string. Returns `true` if found, `false` otherwise.
+
+<ParamField path="text" type="string" required>The substring to search for in journal entries.</ParamField>
+<ParamField path="author" type="string">Optional author/source name to narrow the search.</ParamField>
+
+```typescript
+if (journal.containsText('You are poisoned')) {
+  player.useType(0xf0e); // Cure potion
+}
+```
+
+---
+
+### waitForText()
+
+```typescript
+waitForText(text: string, author?: string, timeout?: number): boolean
+```
+
+Blocks the script until the given text appears in the journal or the timeout is reached. Returns `true` if found, `false` if timed out.
+
+<ParamField path="text" type="string" required>The substring to wait for.</ParamField>
+<ParamField path="author" type="string">Optional author name to filter by (e.g. `'System'`).</ParamField>
+<ParamField path="timeout" type="number">Maximum time to wait in milliseconds. Defaults to 5000ms.</ParamField>
+
+```typescript
+const healthBefore = player.hits;
+
+journal.clear();
+player.useType(0xe21); // Bandages
+target.waitTargetSelf();
+
+if (journal.waitForText('You healed', 'System', 8000)) {
+  client.headMsg(`Bandaged +${player.hits - healthBefore}`, player, 66);
+}
+```
+
+---
+
+### waitForTextAny()
+
+```typescript
+waitForTextAny(text: string[], author?: string, timeout?: number): null | string
+```
+
+Waits until **any one** of the strings in the array appears in the journal. Returns the first matching string, or `null` if the timeout was reached before any match.
+
+Use this when multiple outcomes are possible and you want to branch on which one occurred first.
+
+<ParamField path="text" type="string[]" required>An array of substrings to watch for.</ParamField>
+<ParamField path="author" type="string">Optional author name filter.</ParamField>
+<ParamField path="timeout" type="number">Maximum time to wait in milliseconds.</ParamField>
+
+```typescript
+const waitMessage    = 'You must wait';
+const failMessage    = 'You cannot focus';
+const successMessage = 'You enter a meditative trance.';
+
+journal.clear();
+const response = journal.waitForTextAny([waitMessage, failMessage, successMessage]);
+
+switch (response) {
+  case waitMessage: {
+    sleep(2000); // Wait and retry
+    break;
+  }
+  case failMessage: {
+    client.sysMsg('Focus failed, retrying...');
+    break;
+  }
+  case successMessage: {
+    client.headMsg('Meditating', player, 66);
+    break;
+  }
+  default: {
+    client.sysMsg('Timed out waiting for meditation response');
+  }
+}
+```
+
+---
+
+### waitForTextEvery()
+
+```typescript
+waitForTextEvery(text: string[], author?: string, timeout?: number): string[]
+```
+
+Waits until **all** of the strings in the array have appeared in the journal, or the timeout is reached. Returns an array of the strings that were found — which may be a subset if the timeout was hit before all appeared.
+
+Use this when you need to confirm that a series of messages all occurred.
+
+<ParamField path="text" type="string[]" required>An array of substrings that must all appear.</ParamField>
+<ParamField path="author" type="string">Optional author name filter.</ParamField>
+<ParamField path="timeout" type="number">Maximum time to wait in milliseconds.</ParamField>
+
+```typescript
+const waitMessage    = 'You must wait';
+const failMessage    = 'You cannot focus';
+const successMessage = 'You enter a meditative trance.';
+
+journal.clear();
+const response = journal.waitForTextEvery([waitMessage, failMessage, successMessage]);
+
+if (response.includes(successMessage)) {
+  client.headMsg('Meditating...', player, 66);
+}
+```
+
+---
+
+## Common Patterns
+
+### React to bandage results
+
+```typescript
+journal.clear();
+player.useType(0xe21);
+target.waitTargetSelf();
+
+const result = journal.waitForTextAny(
+  ['You heal', 'You can not', 'bandages remaining'],
+  undefined,
+  10000
+);
+
+if (result?.includes('You heal')) {
+  client.sysMsg('Heal successful!');
+} else {
+  client.sysMsg('Bandage failed or timed out.');
+}
+```
+
+### Skill use with journal response
+
+```typescript
+journal.clear();
+player.useSkill(Skills.Meditation);
+
+if (journal.waitForText('You enter a meditative trance', undefined, 3000)) {
+  client.headMsg('In trance', player, 66);
+  sleep(5000); // Meditate for 5 seconds
+}
+```

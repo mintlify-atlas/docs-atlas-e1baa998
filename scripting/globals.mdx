@@ -1,0 +1,293 @@
+---
+title: 'ClassicUO Scripting Globals and Built-in Functions'
+sidebarTitle: 'Globals'
+description: 'Complete reference for every pre-injected global variable and built-in function available in ClassicUO Web scripts — no imports required.'
+---
+
+Every ClassicUO Web script starts with a set of global variables and built-in functions already in scope. You never need to import anything — `player`, `client`, `journal`, and the rest are injected automatically before your script runs. This page documents all of them, along with the three built-in functions (`sleep`, `log`, and `exit`) that control timing, output, and flow.
+
+## Global Variables
+
+The table below summarises every pre-injected variable. Each one is a live reference to the current state of your game session — reads always reflect the latest values at the moment they are evaluated.
+
+| Variable | Type | Description |
+| :--- | :--- | :--- |
+| `client` | `Client` | Main object for interacting with the ClassicUO client and the game world. |
+| `player` | `Player` | Reference to the currently logged-in player character. |
+| `journal` | `Journal` | Inspect and search entries from the in-game text journal. |
+| `ignoreList` | `IgnoreList` | Manage entities that should be excluded from search functions. |
+| `target` | `Target` | Create targeting cursors and respond to targeting requests. |
+| `worldMap` | `WorldMap` | Read and manage markers on the world map. |
+| `popupMenu` | `PopupMenu` | Interact with context menus (right-click popup menus) on entities. |
+
+---
+
+### `client`
+
+```typescript
+const client: Client;
+```
+
+`client` is the main entry point for interacting with the ClassicUO client and the game world. Use it to search for nearby entities, send commands, query world state, and perform actions that are not tied directly to your character.
+
+```typescript
+// Find the nearest mobile that is not the player and not in the ignore list
+const mob = client.findMobile({ range: 10, notoriety: [enums.Notoriety.Murderer] });
+if (mob) {
+  log(`Found murderer: ${mob.name} at (${mob.x}, ${mob.y})`);
+}
+```
+
+---
+
+### `player`
+
+```typescript
+const player: Player;
+```
+
+`player` is a direct reference to your character. It exposes stats, skills, position, equipment, and action methods such as `useSkill()`, `say()`, and `move()`.
+
+```typescript
+// Print a summary of the player's vital stats
+log(`Name:  ${player.name}`);
+log(`HP:    ${player.hp} / ${player.maxHp}`);
+log(`Mana:  ${player.mana} / ${player.maxMana}`);
+log(`Stam:  ${player.stamina} / ${player.maxStamina}`);
+log(`Gold:  ${player.gold}`);
+```
+
+---
+
+### `journal`
+
+```typescript
+const journal: Journal;
+```
+
+`journal` lets you inspect the rolling log of all text messages that have appeared in the game — system messages, NPC speech, player chat, skill gain notifications, and more. Commonly used to detect events and gate script logic on what has been said.
+
+```typescript
+// Wait until a specific message appears in the journal
+while (!journal.hasEntry('You feel yourself come back to life!')) {
+  sleep(500);
+}
+log('Resurrection detected — resuming script.');
+```
+
+---
+
+### `ignoreList`
+
+```typescript
+const ignoreList: IgnoreList;
+```
+
+`ignoreList` holds the set of entity serial numbers that search functions (such as `client.findMobile()` and `client.findItem()`) will skip over. Use it to exclude entities you have already processed so your script does not act on the same object twice.
+
+```typescript
+// Process every ore boulder in range, ignoring each one after looting
+while (true) {
+  const ore = client.findItem({ graphic: 0x19B7, ignoreList: true });
+  if (!ore) {
+    log('No more ore boulders in range.');
+    break;
+  }
+  player.moveItem(ore, player.backpack);
+  ignoreList.add(ore.serial);
+  sleep(600);
+}
+```
+
+---
+
+### `target`
+
+```typescript
+const target: Target;
+```
+
+`target` provides methods for requesting and responding to targeting cursors — both object targets and ground targets. It is used whenever an action (such as casting a spell) opens a target cursor that needs to be fulfilled programmatically.
+
+```typescript
+// Cast a spell and then target the player's own character
+player.castSpell(Spells.GreaterHeal);
+sleep(500);
+target.waitForTarget(5000);
+target.targetSelf();
+```
+
+---
+
+### `worldMap`
+
+```typescript
+const worldMap: WorldMap;
+```
+
+`worldMap` lets you read information from and interact with the in-game world map. You can add, remove, or query custom markers to help navigate or track locations during a script run.
+
+```typescript
+// Mark the player's current location on the world map
+worldMap.addMarker({
+  x: player.x,
+  y: player.y,
+  name: 'Script start',
+  color: 0x0035,
+});
+log(`Marked starting position: (${player.x}, ${player.y})`);
+```
+
+---
+
+### `popupMenu`
+
+```typescript
+const popupMenu: PopupMenu;
+```
+
+`popupMenu` gives scripts access to context menus — the menus that appear when you right-click on a mobile or item. Use it to open a context menu on an entity and then click one of its entries programmatically.
+
+```typescript
+// Open the context menu on the player and select the "Skills" option
+popupMenu.request(player.serial);
+sleep(300);
+popupMenu.select('Skills');
+```
+
+---
+
+## Built-in Functions
+
+These three functions are available in every script without any import. They handle timing, console output, and early termination.
+
+---
+
+### `sleep()`
+
+```typescript
+function sleep(ms: number): void;
+```
+
+Pauses script execution for the given number of milliseconds before continuing to the next statement. Because scripts run synchronously, `sleep()` is the standard way to pace actions and avoid sending commands faster than the server can process them.
+
+<Note>
+  The delay timing for long durations is not guaranteed to be exact. Network latency and browser scheduling can introduce small variances. Avoid relying on sub-millisecond precision.
+</Note>
+
+<ParamField path="ms" type="number" required>
+  The number of milliseconds to delay before the script continues. For example, pass `1000` to pause for one second.
+</ParamField>
+
+```typescript
+// Use Anatomy, wait 10 seconds, then use Meditation
+player.useSkill(Skills.Anatomy);
+sleep(10000); // sleep 10 seconds
+player.useSkill(Skills.Meditation);
+```
+
+---
+
+### `log()`
+
+```typescript
+function log(...args: any[]): void;
+```
+
+Writes one or more values to the console area displayed below the scripting window. Accepts any number of arguments of any type — objects, strings, numbers, and booleans are all formatted automatically.
+
+<ParamField path="...args" type="any[]" required>
+  One or more values to print. Multiple values are separated by a space in the console output, matching the behaviour of `console.log()`.
+</ParamField>
+
+```typescript
+// Plain string
+log('Hi there!');
+
+// Template literal with a live value
+log(`My name is ${player.name}`);
+
+// Mix of text and an object
+log(`My helmet is`, player.equippedItems.helmet);
+```
+
+<Tip>
+  Use `log()` liberally while developing a script. It's the fastest way to inspect live values and understand what the script is seeing at each step.
+</Tip>
+
+---
+
+### `exit()`
+
+```typescript
+function exit(reason?: string): void;
+```
+
+Immediately stops the script. Execution halts at the point where `exit()` is called — no further statements run. An optional `reason` string is written to the console area so you can see why the script stopped.
+
+<ParamField path="reason" type="string">
+  An optional human-readable explanation for why the script is stopping. This message appears in the console output beneath the scripting window.
+</ParamField>
+
+```typescript
+if (player.isDead) {
+  exit("Failed, I'm dead!");
+}
+```
+
+```typescript
+// Bail out if backpack is too full to continue safely
+if (player.weight > player.maxWeight * 0.95) {
+  exit('Stopping — backpack is almost full.');
+}
+```
+
+---
+
+## Practical Multi-Global Example
+
+The following script demonstrates several globals working together. It checks the player's health, scans for nearby hostiles, logs what it finds, and uses `exit()` to bail out if the situation is unsafe:
+
+```typescript
+// Safety check before doing anything
+if (player.isDead) {
+  exit('Cannot run — player is dead.');
+}
+
+if (player.hp < player.maxHp * 0.5) {
+  log('Warning: low HP, proceeding with caution.');
+}
+
+// Clear the ignore list so we start a fresh search
+ignoreList.clear();
+
+log(`Starting scan from (${player.x}, ${player.y})`);
+
+while (true) {
+  // Find the nearest non-innocent mobile not already ignored
+  const hostile = client.findMobile({
+    range: 12,
+    notoriety: [enums.Notoriety.Criminal, enums.Notoriety.Murderer, enums.Notoriety.Enemy],
+    ignoreList: true,
+  });
+
+  if (!hostile) {
+    log('No more hostiles in range. Done.');
+    break;
+  }
+
+  log(`Hostile found: ${hostile.name} (serial: ${hostile.serial})`);
+
+  // Check journal for a death message before continuing
+  if (journal.hasEntry('You are dead.')) {
+    exit('Player died during scan — aborting.');
+  }
+
+  // Add to ignore list so next iteration finds a different target
+  ignoreList.add(hostile.serial);
+
+  sleep(200);
+}
+
+log('Scan complete.');
+```

@@ -1,0 +1,158 @@
+---
+title: 'Mobile Class: NPCs, Players, and Creatures in Ultima'
+sidebarTitle: 'Mobile'
+description: 'Reference for the Mobile class — any NPC, player, or creature in Ultima Online. Covers health, mana, stamina, notoriety, equipped items, and position.'
+---
+
+The `Mobile` class represents any living entity in the game world — NPCs, creatures, other players, and your own character. It extends the base `Entity` class (which provides `serial`, `name`, `graphic`, `hue`, `x`, `y`, `z`, `hits`, `maxHits`, and `isHidden`) and is itself extended by the [`Player`](/scripting/namespaces/player) class, which adds character-specific stats.
+
+Mobiles are returned by search functions like `client.findType()`, `client.findAllMobilesOfType()`, and `client.selectEntity()`.
+
+```typescript
+// Check if the nearest mobile is a sheep and say hello
+const sheep = client.findAllMobilesOfType(0xcf);
+if (sheep.length > 0) {
+  client.headMsg('Baa!', sheep[0], 66);
+}
+```
+
+<Note>
+  The `player` global variable is also a `Mobile`. All properties documented here are available on `player` in addition to the player-specific stats.
+</Note>
+
+---
+
+## Properties
+
+### Identity & Position
+
+| Property | Type | Description |
+|---|---|---|
+| `serial` | `number` | Unique entity serial number. |
+| `name` | `string` | Name of the mobile. Empty string if not yet known to the client. |
+| `graphic` | `number` | Body/graphic ID. Returns 0 if off-screen. |
+| `hue` | `number` | Hue/colour. Returns 0 if off-screen. |
+| `x` | `number` | Current X coordinate. Returns 0 if off-screen. |
+| `y` | `number` | Current Y coordinate. Returns 0 if off-screen. |
+| `z` | `number` | Current Z coordinate. Returns 0 if off-screen. |
+
+**Example — read position:**
+
+```typescript
+const entity = client.findObject(player);
+console.log(entity.x, entity.y, entity.z);
+```
+
+---
+
+### Health, Mana & Stamina
+
+| Property | Type | Description |
+|---|---|---|
+| `hits` | `number` | Current hit points. Returns 0 if unknown or off-screen. |
+| `maxHits` | `number` | Maximum hit points. Returns 0 if unknown or off-screen. |
+| `mana` | `number` | Current mana. Real value for the player; scale of 1–100 for others. |
+| `maxMana` | `number` | Maximum mana. |
+| `stamina` | `number` | Current stamina. Real value for the player; scale of 1–100 for others. |
+| `maxStamina` | `number` | Maximum stamina. |
+
+```typescript
+const mob = client.findObject(0x991);
+if (mob) {
+  console.log(`${mob.name}: ${mob.hits}/${mob.maxHits} HP`);
+}
+```
+
+---
+
+### Status Flags
+
+| Property | Type | Description |
+|---|---|---|
+| `isPoisoned` | `boolean` | `true` if the mobile is poisoned (green hue on health bar). |
+| `isYellowHits` | `boolean` | `true` if the mobile's health bar is yellow (Invulnerable). |
+| `isHidden` | `boolean` | `true` if the mobile is hidden. |
+| `isParalyzed` | `boolean` | `true` if the mobile is currently paralyzed. |
+| `isDead` | `boolean` | `true` if the mobile is dead. |
+| `isFemale` | `boolean` | `true` if the mobile is female. |
+| `inWarMode` | `boolean` | `true` if the mobile is in war mode (humanoid). |
+
+---
+
+### Notoriety
+
+```typescript
+notoriety: Notorieties;
+```
+
+The mobile's notoriety level — Innocent, Gray, Criminal, Enemy, Murderer, etc. Compare using the `Notorieties` enum.
+
+```typescript
+const mob = client.findObject(0x991);
+if (mob && mob.notoriety === Notorieties.Murderer) {
+  client.headMsg('Murderer!', player, 33);
+}
+```
+
+---
+
+### Direction
+
+```typescript
+direction: number;
+```
+
+The direction the mobile is facing, returned as a number. Returns 0 if not known or off-screen. Compare using the `Directions` enum, or look up the name via reverse indexing.
+
+```typescript
+const entity = client.findObject(0x991);
+if (entity) {
+  if (entity.direction === Directions.North) {
+    console.log(`${entity.name} is facing North`);
+  } else {
+    console.log(Directions[entity.direction]); // e.g. "East"
+  }
+}
+```
+
+---
+
+### Equipped Items
+
+```typescript
+equippedItems: {
+  arms: Item;       beard: Item;     bracelet: Item;  cloak: Item;
+  earrings: Item;   face: Item;      gloves: Item;    hair: Item;
+  helmet: Item;     legs: Item;      mount: Item;     necklace: Item;
+  oneHanded: Item;  pants: Item;     ring: Item;      robe: Item;
+  shirt: Item;      shoes: Item;     skirt: Item;     talisman: Item;
+  torso: Item;      tunic: Item;     twoHanded: Item; waist: Item;
+}
+```
+
+The equipped items for the mobile across all body/inventory slots. Each slot returns an `Item` (or `undefined` if nothing is equipped there).
+
+```typescript
+const robe = client.findObject(player.equippedItems.robe);
+if (robe) {
+  console.log(robe.name); // e.g. "Robe"
+}
+```
+
+<Tip>
+  You can also use `client.findItemOnLayer(serial, Layers.Helmet)` as an alternative way to access equipped items by layer.
+</Tip>
+
+---
+
+## Inheritance Chain
+
+The `Mobile` class sits in the middle of the entity hierarchy:
+
+```
+Entity
+  └── Mobile
+        └── Player
+```
+
+All `Entity` properties (`serial`, `name`, `graphic`, `hue`, `x`, `y`, `z`, `hits`, `maxHits`, `isHidden`) are available on every `Mobile`. The `Player` class adds character-specific properties such as resistances, gold, skills, and more.

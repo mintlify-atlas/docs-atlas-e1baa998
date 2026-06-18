@@ -1,0 +1,70 @@
+---
+title: 'Action Bar: One-Click Hotkeys and Scripts in ClassicUO'
+sidebarTitle: 'Action Bar'
+description: 'Use the ClassicUO Web Action Bar to place hotkeys and scripts on an MMO-style toolbar, with key combos displayed and live script status.'
+---
+
+The Action Bar brings a familiar MMO-style toolbar to ClassicUO Web, giving you instant one-click access to your most-used hotkey actions and scripts. Rather than memorising every key binding or digging through menus mid-fight, you can pin the actions you rely on most to a persistent bar displayed on screen. Each slot shows the key combination assigned to it, and script slots display a live running indicator so you always know what's active.
+
+<Note>
+  Enable **Action Bar** under **Experimental** in [Game Options](/features/game-options) to use this feature.
+</Note>
+
+## Feature Highlights
+
+<CardGroup cols={2}>
+  <Card title="Clickable Hotkeys" icon="keyboard">
+    Any hotkey you've configured can be added to the Action Bar. Clicking the slot triggers the action exactly as if you pressed the key combination — the bound keys are displayed directly on the slot for reference.
+  </Card>
+  <Card title="Script Execution" icon="play">
+    Scripts can be placed on the Action Bar and run with a single click. The slot shows a live running status indicator while the script is active, and clicking it again stops execution.
+  </Card>
+  <Card title="Quick Stop" icon="stop">
+    Running scripts can be stopped directly from the Action Bar without navigating to the Scripts window, making it easy to interrupt a script during combat or while moving.
+  </Card>
+  <Card title="Always Visible" icon="eye">
+    The Action Bar stays on screen at all times (when enabled), providing a persistent reference for your key bindings and a fast way to trigger actions without remembering every shortcut.
+  </Card>
+</CardGroup>
+
+## Adding Items to the Action Bar
+
+### Adding Hotkeys
+
+Hotkeys are added to the Action Bar from within the Hotkeys window:
+
+<Steps>
+  <Step title="Open the Hotkeys Window">
+    Navigate to the [Hotkeys](/features/hotkeys) window from the Assistant or the in-game options menu.
+  </Step>
+  <Step title="Find the Desired Hotkey">
+    Browse or search the list for the action you want to add.
+  </Step>
+  <Step title="Enable the Action Bar Toggle">
+    Click the **Action Bar** toggle switch next to the hotkey entry. The slot will immediately appear in your Action Bar.
+  </Step>
+</Steps>
+
+### Adding Scripts
+
+Scripts are added to the Action Bar from the Scripts window:
+
+<Steps>
+  <Step title="Open the Scripts Window">
+    Navigate to the Scripts window from the Assistant panel.
+  </Step>
+  <Step title="Select the Script">
+    Click on the script you want to add to highlight it.
+  </Step>
+  <Step title="Click the Action Bar Toggle">
+    In the top menu of the Scripts window, click the **Action Bar** toggle button. The script slot will be added to your Action Bar.
+  </Step>
+</Steps>
+
+<Tip>
+  Organise your Action Bar by activity. Use [Game Profiles](/features/game-profiles) to maintain separate Action Bar layouts for PvP, PvM, and crafting — swapping profiles instantly reconfigures the bar for each context.
+</Tip>
+
+## Interaction with Hotkeys
+
+The Action Bar and the [Hotkeys](/features/hotkeys) system are closely connected. Every slot on the Action Bar is backed by a hotkey definition — even script slots can have a key binding assigned in the Hotkeys window so you can trigger them via keyboard *or* by clicking the bar. The key combination is always shown on the slot face, acting as a built-in cheat sheet for your bindings.

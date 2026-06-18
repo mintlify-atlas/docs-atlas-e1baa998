@@ -1,0 +1,137 @@
+---
+title: 'Shard Rules: Restrict ClassicUO Web Client Features'
+sidebarTitle: 'Shard Rules'
+description: 'Control ClassicUO Web features per shard with Shard Rules — restrict scripting, disable assistant features, and override game profile option defaults.'
+---
+
+Shard Rules give you fine-grained control over what the ClassicUO Web client is allowed to do when a player is connected to your shard. If your ruleset requires disabling certain UO features for gameplay or anti-cheat reasons, you can restrict which ClassicUO settings players can change and override their default values — all without distributing a custom client binary. Rules are applied server-side and enforced by the web client, so players cannot bypass them by editing local config files.
+
+To configure rules for your shard, navigate to the **Rules** section of the [Shard Management](https://play.classicuo.org/shard-management) portal.
+
+<Note>
+  Shards that support the [WebIdentity packet](https://github.com/ClassicUO/packets/?tab=readme-ov-file#packets) can also validate that players are running a genuine ClassicUO Web client, giving you confidence that the rules you set are actually being enforced.
+</Note>
+
+## ShardRules schema
+
+The rules configuration is validated against the `shardRulesSchema` Zod schema defined in the ClassicUO Web modding package. The full TypeScript definition is:
+
+```typescript
+import z from 'zod';
+import { profileSchema } from './gameProfile';
+
+export const shardRulesSchema = z.object({
+  web: z.object({
+    scripting: z
+      .union([z.literal('enabled'), z.literal('disabled'), z.literal('disable-ts')])
+      .describe('Enables/Disables the scripting features of the assistant'),
+    features: z
+      .object({
+        dressAgent: z.boolean().default(true).optional()
+          .describe('Enables/Disables the dress assistant'),
+        friends: z.boolean().default(true).optional()
+          .describe('Enables/Disables the friends/enemies list inside the assistant'),
+      })
+      .optional(),
+  }),
+  options: z
+    .object({
+      profileOverrides: profileOverridesSchema
+        .optional()
+        .describe(
+          'Overrides for player profiles with the ability to set default values and/or disable completely'
+        ),
+    })
+    .optional()
+    .describe('Game options rules'),
+});
+
+export type ShardRules = z.infer<typeof shardRulesSchema>;
+```
+
+## Field reference
+
+### `web.scripting`
+
+Controls access to the Web Assistant's automation features.
+
+| Value | Behaviour |
+|---|---|
+| `"enabled"` | Scripting is fully available. Players can use both visual Blockly scripts and TypeScript code scripts. |
+| `"disabled"` | All scripting is disabled. Neither Blockly nor TypeScript scripts can be run. |
+| `"disable-ts"` | TypeScript code scripts are disabled, but visual Blockly scripts remain available. |
+
+<Warning>
+  If your shard has strict anti-macro policies, set `scripting` to `"disabled"` to prevent players from running any automation through the assistant.
+</Warning>
+
+### `web.features.dressAgent`
+
+| Type | Default |
+|---|---|
+| `boolean` | `true` |
+
+When set to `false`, the **dress assistant** — which allows players to quickly equip and unequip saved equipment sets — is hidden and unavailable. Useful for shards where rapid equipment swapping gives an unintended advantage.
+
+### `web.features.friends`
+
+| Type | Default |
+|---|---|
+| `boolean` | `true` |
+
+When set to `false`, the **friends and enemies list** inside the assistant is disabled. This removes the ability for players to tag other characters and apply custom colour highlighting based on friend/enemy status.
+
+### `options.profileOverrides`
+
+The `profileOverrides` object is the most powerful part of the rules system. It maps to the full `profileSchema` shape — every game profile option that ClassicUO Web exposes to players can be overridden here.
+
+Each key in `profileOverrides` accepts an object with two optional fields:
+
+| Field | Type | Description |
+|---|---|---|
+| `defaultValue` | Matches the option's schema type | Sets the default value for this option for all players on your shard. |
+| `disabledWithReason` | `string` (min 1 char) | Locks the option so players cannot change it. The string is displayed to the player as the reason it is locked. Must be a non-empty string. |
+
+You can specify either field independently:
+
+- **`defaultValue` only** — The option starts at your preferred value but the player can still change it.
+- **`disabledWithReason` only** — The option is locked at whatever value the player already has (or the schema default).
+- **Both** — The option is locked at your specified `defaultValue`, and the player sees your reason message.
+
+## Example configuration
+
+The following JSON shows a complete shard rules configuration that disables TypeScript scripting, turns off the dress agent, forces `alwaysRun` off and locks it, and sets a custom default speech hue:
+
+```json
+{
+  "web": {
+    "scripting": "disable-ts",
+    "features": {
+      "dressAgent": false,
+      "friends": true
+    }
+  },
+  "options": {
+    "profileOverrides": {
+      "alwaysRun": {
+        "defaultValue": false,
+        "disabledWithReason": "Always-run is disabled on this shard for balance reasons."
+      },
+      "speechHue": {
+        "defaultValue": 1153
+      },
+      "enableSound": {
+        "defaultValue": true
+      }
+    }
+  }
+}
+```
+
+<Tip>
+  Any profile key not listed in `profileOverrides` is left entirely under the player's control. You only need to specify the options you want to restrict or change.
+</Tip>
+
+## Applying your rules
+
+Once you have composed your rules JSON, paste it into the **Rules** editor in the [Shard Management](https://play.classicuo.org/shard-management) portal and save. Rules take effect immediately for all new sessions — players already in-game will see the changes applied on their next login.

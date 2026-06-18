@@ -1,0 +1,603 @@
+---
+title: 'Client Class: Search, Message, and Game Interaction'
+sidebarTitle: 'Client'
+description: 'Reference for the Client class — search entities, display messages, manage the viewport, and interact with vendors via the global client variable.'
+---
+
+The `Client` class is the primary interface for querying and interacting with the game world. It is available globally as `client` in every script. Use it to locate items and mobiles by serial or graphic, display messages, trigger macros, manage zoom levels, and send buy/sell requests to vendors.
+
+<Note>
+  `client` is always available as a global variable. It does not need to be imported or instantiated.
+</Note>
+
+---
+
+## Finding Entities
+
+### findObject()
+
+```typescript
+findObject(
+  serial: number | SerialOrEntity | 'world',
+  hue?: null | number,
+  sourceSerial?: null | number | SerialOrEntity | 'world',
+  amount?: null | number,
+  range?: null | number
+): any
+```
+
+Finds a specific object by its serial number.
+
+<ParamField path="serial" type="number | SerialOrEntity | 'world'" required>
+  The serial of the object to find.
+</ParamField>
+<ParamField path="hue" type="number">Optional hue filter.</ParamField>
+<ParamField path="sourceSerial" type="SerialOrEntity | 'world'">Optional container to search within.</ParamField>
+<ParamField path="amount" type="number">Optional minimum amount filter.</ParamField>
+<ParamField path="range" type="number">Optional range or search depth.</ParamField>
+
+```typescript
+const runebookSerial = 0x401c37fb;
+const runebook = client.findObject(runebookSerial);
+
+if (runebook) {
+  player.use(runebook);
+} else {
+  client.headMsg('Runebook missing!', player.serial);
+}
+```
+
+---
+
+### findType()
+
+```typescript
+findType(
+  graphic: number,
+  hue?: null | number,
+  sourceSerial?: null | number | SerialOrEntity | 'world',
+  amount?: null | number,
+  range?: null | number
+): any
+```
+
+Finds the first object matching a graphic (and optional parameters). When combined with `sourceSerial`, the `range` parameter specifies the container depth to search.
+
+```typescript
+// Use any bandages that can be found
+const bandageType = 0xe21;
+const bandages = client.findType(bandageType);
+
+if (bandages) {
+  player.use(bandages);
+  target.waitTargetSelf();
+} else {
+  client.headMsg('Out of bandages', player.serial);
+}
+```
+
+<Tip>
+  Use `ignoreList.add(item)` inside a loop with `findType` to iterate over multiple items of the same type without re-finding the same one.
+</Tip>
+
+---
+
+### findAllOfType()
+
+```typescript
+findAllOfType(
+  graphic: number,
+  hue?: null | number,
+  sourceSerial?: null | number | SerialOrEntity | 'world',
+  amount?: null | number,
+  range?: null | number
+): any[]
+```
+
+Returns an array of all Items and Mobiles matching the given graphic.
+
+```typescript
+const goldPile = 0xeed;
+const piles = client.findAllOfType(goldPile, undefined, 'world');
+
+if (piles.length > 0) {
+  client.headMsg(`Found ${piles.length} gold piles on the ground`, player);
+} else {
+  client.headMsg('No gold piles in range', player);
+}
+```
+
+---
+
+### findAllItemsOfType()
+
+```typescript
+findAllItemsOfType(
+  graphic: number,
+  hue?: null | number,
+  sourceSerial?: null | number | SerialOrEntity | 'world',
+  amount?: null | number,
+  range?: null | number
+): Item[]
+```
+
+Returns only **Item** results (not Mobiles) matching the given graphic.
+
+```typescript
+const goldPile = 0xeed;
+const piles = client.findAllItemsOfType(goldPile, undefined, 'world');
+
+if (piles.length > 0) {
+  const total = piles.reduce((sum, item) => sum + item.amount, 0);
+  client.headMsg(`Found ${piles.length} piles, ${total} gold`, player);
+}
+```
+
+---
+
+### findAllMobilesOfType()
+
+```typescript
+findAllMobilesOfType(
+  graphic: number,
+  hue?: null | number,
+  sourceSerial?: null | number | SerialOrEntity | 'world',
+  amount?: null | number,
+  range?: null | number
+): Mobile[]
+```
+
+Returns only **Mobile** results matching the given graphic.
+
+```typescript
+const sheepGraphic = 0xcf;
+const sheep = client.findAllMobilesOfType(sheepGraphic);
+
+if (sheep.length > 0) {
+  client.headMsg(`I count ${sheep.length} sheep`, player);
+} else {
+  client.headMsg('No sheep here!', player);
+}
+```
+
+---
+
+### findItemOnLayer()
+
+```typescript
+findItemOnLayer(
+  serial: number | SerialOrEntity | 'world',
+  layer: Layers
+): any
+```
+
+Finds the item equipped on the specified layer of a mobile.
+
+```typescript
+const helm = client.findItemOnLayer(player.serial, Layers.Helmet);
+
+if (helm) {
+  client.headMsg('Removing helm', player);
+  player.moveItem(helm, player.backpack);
+} else {
+  client.headMsg('Not wearing a helm', player.serial);
+}
+```
+
+---
+
+### selectEntity()
+
+```typescript
+selectEntity(
+  searchOpt: number,
+  searchRangeOpt: number,
+  searchTypeOpt: number,
+  asFriend: boolean
+): any
+```
+
+Returns an entity based on combined search criteria using the `SearchEntityOptions`, `SearchEntityRangeOptions`, and `SearchEntityTypeOptions` enums.
+
+```typescript
+// Select the nearest enemy or gray mobile of any type
+client.selectEntity(
+  SearchEntityOptions.Enemy | SearchEntityOptions.Gray,
+  SearchEntityRangeOptions.Nearest,
+  SearchEntityTypeOptions.Any,
+  false
+);
+```
+
+```typescript
+// Open the paperdoll of the nearest innocent human
+const nearestHuman = client.selectEntity(
+  SearchEntityOptions.Innocent,
+  SearchEntityRangeOptions.Nearest,
+  SearchEntityTypeOptions.Human,
+  false
+);
+client.openPaperdoll(nearestHuman);
+```
+
+---
+
+## Messages & Communication
+
+### sysMsg()
+
+```typescript
+sysMsg(message: string, hue?: number): void
+```
+
+Displays a message in the system text chat (visible only to you, not sent to the server).
+
+<ParamField path="message" type="string" required>The message to display.</ParamField>
+<ParamField path="hue" type="number">Optional hue for the message colour.</ParamField>
+
+```typescript
+client.sysMsg('Script started.');
+client.sysMsg('Warning: low mana!', 33); // Red text
+```
+
+---
+
+### headMsg()
+
+```typescript
+headMsg(
+  message: string,
+  serial: number | SerialOrEntity | 'world',
+  hue?: number
+): void
+```
+
+Displays a floating message above an entity's head.
+
+<ParamField path="message" type="string" required>The message to display.</ParamField>
+<ParamField path="serial" type="number | SerialOrEntity | 'world'" required>The entity above which to show the message.</ParamField>
+<ParamField path="hue" type="number">Optional hue for the message colour.</ParamField>
+
+```typescript
+client.headMsg('A message in Red', player, 33);
+client.headMsg('A message in Green', player, 66);
+```
+
+---
+
+### openPaperdoll()
+
+```typescript
+openPaperdoll(serial?: number | SerialOrEntity | 'world'): void
+```
+
+Opens the paperdoll gump for a mobile. Opens your own paperdoll if no serial is provided.
+
+```typescript
+client.openPaperdoll(player);
+```
+
+---
+
+### allNames()
+
+```typescript
+allNames(): any
+```
+
+Triggers the **All Names** macro, showing name overheads for all on-screen entities.
+
+```typescript
+client.allNames();
+```
+
+---
+
+## Viewport Controls
+
+### zoomIn() / zoomOut() / zoomReset()
+
+```typescript
+zoomIn(): any
+zoomOut(): any
+zoomReset(): any
+```
+
+Zoom the game viewport in, out, or reset to the default level (1.1×).
+
+```typescript
+client.zoomIn();
+client.zoomOut();
+client.zoomReset();
+```
+
+---
+
+### toggleCircleOfTransparency()
+
+```typescript
+toggleCircleOfTransparency(): void
+```
+
+Cycles the Circle of Transparency feature between its states.
+
+```typescript
+client.toggleCircleOfTransparency();
+```
+
+---
+
+### toggleAlwaysRun()
+
+```typescript
+toggleAlwaysRun(): any
+```
+
+Toggles whether the player always runs regardless of mouse distance.
+
+```typescript
+client.toggleAlwaysRun();
+```
+
+---
+
+### toggleNameOverheads()
+
+```typescript
+toggleNameOverheads(): any
+```
+
+Toggles name plates above all entities.
+
+```typescript
+client.toggleNameOverheads();
+```
+
+---
+
+### toggleAuras()
+
+```typescript
+toggleAuras(): any
+```
+
+Toggles aura rings displayed beneath mobiles.
+
+```typescript
+client.toggleAuras();
+```
+
+---
+
+### toggleChatVisibility()
+
+```typescript
+toggleChatVisibility(): any
+```
+
+Toggles the chat bar visibility at the bottom of the game viewport.
+
+```typescript
+client.toggleChatVisibility();
+```
+
+---
+
+### setGrabBag()
+
+```typescript
+setGrabBag(): any
+```
+
+Sets the grab bag used by the Grid Loot feature.
+
+```typescript
+client.setGrabBag();
+```
+
+---
+
+## Gump & UI Management
+
+### closeAllGumps()
+
+```typescript
+closeAllGumps(): any
+```
+
+Closes all open gumps except the Top Bar, Buff Bar, and World view.
+
+```typescript
+client.closeAllGumps();
+```
+
+---
+
+### closeCorpses()
+
+```typescript
+closeCorpses(): any
+```
+
+Closes all open corpse containers currently on screen.
+
+```typescript
+client.closeCorpses();
+```
+
+---
+
+### closeAllHealthBars()
+
+```typescript
+closeAllHealthBars(): any
+```
+
+Closes all health bar gumps currently on screen.
+
+```typescript
+client.closeAllHealthBars();
+```
+
+---
+
+### closeInactiveHealthBars()
+
+```typescript
+closeInactiveHealthBars(): any
+```
+
+Closes health bars for entities that are dead or no longer on screen.
+
+```typescript
+client.closeInactiveHealthBars();
+```
+
+---
+
+## Vendor Interactions
+
+### sendBuyRequest()
+
+```typescript
+sendBuyRequest(vendorSerial: any, items: object[]): boolean
+```
+
+Sends a buy request to a vendor. Use `Gump.lastVendorBuyData` to retrieve the available item list first.
+
+<ParamField path="vendorSerial" type="any" required>The serial of the vendor NPC.</ParamField>
+<ParamField path="items" type="object[]" required>Array of item objects to purchase.</ParamField>
+
+```typescript
+const data = Gump.lastVendorBuyData;
+if (data && data.type === 'buy') {
+  const ingots = data.items.filter((i) => i.name.toLowerCase().includes('ingot'));
+  client.sendBuyRequest(data.vendor, ingots);
+  console.log('Bought items', ingots);
+}
+```
+
+---
+
+### sendSellRequest()
+
+```typescript
+sendSellRequest(vendorSerial: any, items: object[]): boolean
+```
+
+Sends a sell request to a vendor. Use `Gump.lastVendorSellData` to retrieve the item list.
+
+```typescript
+player.say('vendor sell');
+
+const data = Gump.lastVendorSellData;
+if (data && data.type === 'sell') {
+  const tongs = data.items.filter((i) => i.name.toLowerCase() === 'tongs');
+  client.sendSellRequest(data.vendor, tongs);
+  console.log('Sold items', tongs.map((i) => i.name));
+}
+```
+
+---
+
+## Item Data
+
+### queryItemOPL()
+
+```typescript
+queryItemOPL(
+  serialOrObject: number | SerialOrEntity | 'world',
+  timeout?: number
+): {
+  amount: number;
+  data: null | string;
+  graphic: number;
+  hue: number;
+  isPartialHue: boolean;
+  name: string;
+  properties: null | object[];
+  serial: number;
+}
+```
+
+Queries and returns the Object Property List (tooltip data) for an item.
+
+<ParamField path="serialOrObject" type="number | SerialOrEntity | 'world'" required>The item to query.</ParamField>
+<ParamField path="timeout" type="number">Optional timeout in milliseconds.</ParamField>
+
+---
+
+### queryItemSingleClickName()
+
+```typescript
+queryItemSingleClickName(
+  serialOrObject: number | SerialOrEntity | 'world',
+  timeout?: number
+): string
+```
+
+Sends a single-click to an item and returns the resulting name string shown overhead. Useful for reading names of objects that don't have OPL data.
+
+<ParamField path="serialOrObject" type="number | SerialOrEntity | 'world'" required>The item to query.</ParamField>
+<ParamField path="timeout" type="number">Optional timeout in milliseconds.</ParamField>
+
+---
+
+### getPing()
+
+```typescript
+getPing(): number
+```
+
+Returns the current ping to the game server (as shown in the Connection gump).
+
+```typescript
+const ping = client.getPing();
+client.sysMsg(`Current ping: ${ping}ms`);
+```
+
+---
+
+## Game Actions
+
+### quitGame()
+
+```typescript
+quitGame(): any
+```
+
+Opens the Quit Game confirmation dialogue.
+
+```typescript
+client.quitGame();
+```
+
+---
+
+### getStatic()
+
+```typescript
+getStatic(graphic: number): undefined | object
+```
+
+Returns static art data for the given graphic ID.
+
+---
+
+### getTile()
+
+```typescript
+getTile(graphic: number): undefined | object
+```
+
+Returns tile data for the given graphic ID.
+
+---
+
+### getTerrainList()
+
+```typescript
+getTerrainList(x: number, y: number): undefined | object[]
+```
+
+Returns terrain/land tile information at the specified coordinates.

@@ -1,72 +1,121 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mintlify Starter Kit",
+  "name": "ClassicUO Web",
+  "theme": "palm",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#4184ed",
+    "light": "#8ec7fb",
+    "dark": "#4184ed"
   },
   "favicon": "/favicon.svg",
-  "navigation": {
-    "pages": [
-      {
-        "group": "Getting Started",
-        "pages": [
-          "index",
-          "quickstart"
-        ]
-      }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
-  },
   "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+    "light": "https://media.brand.dev/66a178c8-8aa7-4601-8066-6f3e0b87499e.svg",
+    "dark": "https://media.brand.dev/b66512e1-01a6-4abf-9619-ef7f70157e97.svg"
   },
   "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
     "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://app.mintlify.com"
+      "type": "github",
+      "href": "https://github.com/ClassicUO/classicuo-web"
     }
-  },
-  "contextual": {
-    "options": [
-      "copy",
-      "view",
-      "chatgpt",
-      "claude",
-      "perplexity",
-      "mcp",
-      "cursor",
-      "vscode"
-    ]
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "github": "https://github.com/ClassicUO/classicuo-web",
+      "discord": "https://discord.com/invite/VdyCpjQ"
     }
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "players/quickstart",
+              "players/faq",
+              "players/faq-sanctioned"
+            ]
+          },
+          {
+            "group": "Features",
+            "pages": [
+              "features/game-profiles",
+              "features/chat",
+              "features/grid-containers",
+              "features/autoloot",
+              "features/action-bar",
+              "features/hotkeys",
+              "features/tooltips",
+              "features/game-options"
+            ]
+          },
+          {
+            "group": "Troubleshooting",
+            "pages": [
+              "players/troubleshooting",
+              "players/troubleshooting-performance",
+              "players/troubleshooting-storage",
+              "players/troubleshooting-browser-test",
+              "players/troubleshooting-dedicated-browser",
+              "players/troubleshooting-gaming-vpn",
+              "players/install-as-app"
+            ]
+          },
+          {
+            "group": "Shard Owners",
+            "pages": [
+              "shard-owners/overview",
+              "shard-owners/patching",
+              "shard-owners/shard-rules",
+              "shard-owners/faq"
+            ]
+          },
+          {
+            "group": "Modding",
+            "pages": [
+              "modding/overview",
+              "modding/quickstart",
+              "modding/api-reference",
+              "modding/web-gumps",
+              "modding/types"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Scripting API",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "scripting/introduction",
+              "scripting/globals"
+            ]
+          },
+          {
+            "group": "Namespaces",
+            "pages": [
+              "scripting/namespaces/player",
+              "scripting/namespaces/client",
+              "scripting/namespaces/mobile",
+              "scripting/namespaces/item",
+              "scripting/namespaces/target",
+              "scripting/namespaces/journal",
+              "scripting/namespaces/gump",
+              "scripting/namespaces/world-map"
+            ]
+          },
+          {
+            "group": "Functions & Enums",
+            "pages": [
+              "scripting/functions",
+              "scripting/enums"
+            ]
+          }
+        ]
+      }
+    ]
   }
 }

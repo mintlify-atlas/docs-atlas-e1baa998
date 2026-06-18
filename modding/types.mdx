@@ -1,0 +1,371 @@
+---
+title: 'ClassicUO Modding Type Definitions and Zod Schemas'
+sidebarTitle: 'Types'
+description: 'Complete reference for all @classicuo/modding Zod-validated TypeScript types: Shard, ShardRules, ClientManifest, Patch, GameProfile, and more.'
+---
+
+The `@classicuo/modding` package ships a dedicated `types` subpath export that contains all Zod schemas and their inferred TypeScript types. These types are used internally by the ClassicUO Web platform to validate shard configuration, manifests, patches, and player profiles. Mod authors can import them for runtime validation or to type their own tooling.
+
+```typescript
+// All types are available from the types subpath
+import { ShardRules, Shard, ClientManifest, Patch, GameProfile } from '@classicuo/modding/types';
+
+// Or from the main package entry
+import { ShardRules } from '@classicuo/modding';
+```
+
+<Note>
+  Every type listed on this page is the **inferred** output of a Zod schema (via `z.infer<typeof schema>`). The schemas themselves (`shardSchema`, `shardRulesSchema`, etc.) are also exported and can be used for runtime parsing with `.parse()` or `.safeParse()`.
+</Note>
+
+---
+
+## `ClientManifest` and `SourceManifest`
+
+Defined in `src/types/manifest.ts`. The `ClientManifest` is the top-level configuration object fetched by the client when connecting to a shard. It references the game files, mods, patches, and shard rules.
+
+### `ClientManifest`
+
+```typescript
+import { ClientManifest, clientManifestSchema } from '@classicuo/modding/types';
+
+interface ClientManifest {
+  source: string;           // source identifier string
+  target: string;           // target build identifier
+  shardId: number;          // shard ID, must be > 0
+  cdnBase: string;          // base CDN URL (must be a valid HTTPS URL)
+  version: number;          // manifest version, must be > 0
+  mods?: string[];          // optional array of HTTPS mod bundle URLs
+  rules?: ShardRules;       // optional shard rule overrides
+  dictFile: Patch;          // dictionary patch descriptor
+  sourceFiles: string[];    // list of source file paths
+  patches: Patch[];         // array of patch descriptors to apply
+}
+```
+
+The `mods` array is the mechanism by which the client knows which mod bundles to load. Each entry must be a valid HTTPS URL pointing directly to a JavaScript bundle that calls `mountInterfaceRoot`.
+
+### `SourceManifest`
+
+A simpler manifest used to describe the raw game file source.
+
+```typescript
+interface SourceManifest {
+  source: string;       // source identifier
+  cdnBase: string;      // base CDN URL
+  version?: number;     // optional version number
+  files: string[];      // list of file paths available at the CDN
+}
+```
+
+**Runtime validation example:**
+
+```typescript
+import { clientManifestSchema } from '@classicuo/modding/types';
+
+const result = clientManifestSchema.safeParse(fetchedManifest);
+if (!result.success) {
+  console.error('Invalid manifest:', result.error.flatten());
+}
+```
+
+---
+
+## `ShardRules`
+
+Defined in `src/types/rules.ts`. Controls which ClassicUO Web assistant features are available to players on your shard, and allows you to lock or preset game profile options.
+
+```typescript
+import { ShardRules, shardRulesSchema } from '@classicuo/modding/types';
+
+interface ShardRules {
+  web: {
+    /**
+     * Controls scripting in the built-in assistant.
+     * 'enabled'     — full scripting allowed
+     * 'disabled'    — scripting tab hidden
+     * 'disable-ts'  — TypeScript mode disabled; Lua only
+     */
+    scripting: 'enabled' | 'disabled' | 'disable-ts';
+    features?: {
+      dressAgent?: boolean;  // default true — show/hide the dress assistant
+      friends?: boolean;     // default true — show/hide friends/enemies list
+    };
+  };
+  options?: {
+    /**
+     * Per-option overrides: set default values or disable options entirely.
+     * Keys correspond to GameProfile field names.
+     */
+    profileOverrides?: {
+      [K in keyof GameProfile]?: {
+        defaultValue?: GameProfile[K];
+        disabledWithReason?: string;   // non-empty string disables the option and shows this message
+      };
+    };
+  };
+}
+```
+
+**Example — disable scripting and lock the music volume:**
+
+```typescript
+import { setShardRules } from '@classicuo/modding';
+
+setShardRules({
+  web: {
+    scripting: 'disabled',
+    features: {
+      dressAgent: true,
+      friends: false
+    }
+  },
+  options: {
+    profileOverrides: {
+      musicVolume: {
+        defaultValue: 80,
+        disabledWithReason: 'Music volume is locked by the shard.'
+      }
+    }
+  }
+});
+```
+
+---
+
+## `Shard`
+
+Defined in `src/types/shard.ts`. Represents a registered shard entry as stored in the ClassicUO Web shard registry.
+
+```typescript
+import { Shard, shardSchema } from '@classicuo/modding/types';
+```
+
+### Fields
+
+<ParamField path="id" type="number" required>
+  Unique numeric shard ID assigned by the platform.
+</ParamField>
+
+<ParamField path="manifest" type="string (HTTPS URL)" required>
+  URL of the shard's `ClientManifest` JSON file. Must begin with `https://`.
+</ParamField>
+
+<ParamField path="mods" type="Array<{ name: string; url: string }>">
+  Optional list of named mod entries. Each entry has a display `name` and a valid HTTPS `url` pointing to the mod bundle.
+</ParamField>
+
+<ParamField path="rules" type="ShardRules">
+  Optional shard rules configuration. See `ShardRules` above.
+</ParamField>
+
+<ParamField path="logo" type="string (URL)" required>
+  URL of the shard's logo image.
+</ParamField>
+
+<ParamField path="name" type="string (max 80 chars)" required>
+  Display name of the shard.
+</ParamField>
+
+<ParamField path="region" type="RegionSchema" required>
+  Geographic region where the shard's servers are hosted.
+</ParamField>
+
+<ParamField path="focus" type='"PvP" | "PvM" | "PvP / PvM"' required>
+  Gameplay focus of the shard.
+</ParamField>
+
+<ParamField path="website" type="string (HTTPS URL)" required>
+  The shard's official website URL. Must begin with `https://`.
+</ParamField>
+
+<ParamField path="discord" type="string (discord.gg URL)">
+  Optional Discord invite URL. Must match `https://discord.gg/{code}`.
+</ParamField>
+
+<ParamField path="encryption" type="number" required>
+  Numeric encryption mode used by the shard server.
+</ParamField>
+
+<ParamField path="clientVersion" type="string" required>
+  Required client version string. Must match the pattern `\d+.\d+.\d+(.d+)?[a-z]*` (e.g. `7.0.95.0`).
+</ParamField>
+
+<ParamField path="useVerdata" type="boolean" required>
+  Whether the shard requires `verdata.mul` patch file.
+</ParamField>
+
+<ParamField path="mapLayouts" type="string" required>
+  Semicolon-separated list of map layout pairs, e.g. `0,0;1,1;2,2`. Must match `(\d+,\d+;?)*`.
+</ParamField>
+
+<ParamField path="useTokenAuth" type="boolean">
+  Optional. When `true`, the client uses token-based authentication for this shard.
+</ParamField>
+
+**Full TypeScript type:**
+
+```typescript
+interface Shard {
+  id: number;
+  manifest: string;
+  mods?: Array<{ name: string; url: string }>;
+  rules?: ShardRules;
+  logo: string;
+  name: string;
+  region: string;
+  focus: 'PvP' | 'PvM' | 'PvP / PvM';
+  website: string;
+  discord?: string;
+  encryption: number;
+  clientVersion: string;
+  useVerdata: boolean;
+  mapLayouts: string;
+  useTokenAuth?: boolean;
+  testing?: boolean;
+  emulatorType?: number;
+}
+```
+
+---
+
+## `Patch` and `PatchConfig`
+
+Defined in `src/types/patch.ts`. Describe individual file patches applied to the game client and the CDN configuration used to host them.
+
+### `Patch`
+
+```typescript
+import { Patch, patchSchema } from '@classicuo/modding/types';
+
+interface Patch {
+  source: string;   // source path relative to the CDN base
+  file: string;     // local filename / destination path
+  sha256: string;   // hex SHA-256 hash for integrity verification
+  length: number;   // compressed byte length
+  size: number;     // uncompressed byte size
+}
+```
+
+### `PatchConfig`
+
+```typescript
+import { PatchConfig, patchConfigSchema } from '@classicuo/modding/types';
+
+interface PatchConfig {
+  cdnBase: string;  // HTTPS CDN base URL
+  b2?: {
+    accountId: string;       // Backblaze B2 account ID
+    applicationKey: string;  // Backblaze B2 application key
+    bucket: string;          // B2 bucket name
+  };
+  files: string[];  // list of file paths hosted at the CDN
+}
+```
+
+---
+
+## `GameProfile`
+
+Defined in `src/types/gameProfile.ts`. The `GameProfile` interface represents the full set of in-game options stored in a player's profile. It is validated and serialised by `profileSchema` (a Zod object schema with over 150 fields).
+
+```typescript
+import { GameProfile, profileSchema } from '@classicuo/modding/types';
+```
+
+The profile covers all major categories of game settings:
+
+| Category | Example fields |
+|---|---|
+| **Sound & Music** | `enableSound`, `soundVolume`, `enableMusic`, `musicVolume`, `enableCombatMusic` |
+| **Chat & Journal** | `speechHue`, `whisperHue`, `emoteHue`, `yellHue`, `partyMessageHue`, `guildMessageHue` |
+| **Combat colours** | `innocentHue`, `criminalHue`, `enemyHue`, `murdererHue`, `beneficHue`, `harmfulHue` |
+| **Display & Rendering** | `defaultScale`, `drawRoofs`, `treeToStumps`, `useXBR`, `shadowsEnabled`, `auraUnderFeetType` |
+| **Lighting** | `useAlternativeLights`, `lightLevel`, `useColoredLights`, `useDarkNights` |
+| **Movement** | `alwaysRun`, `smoothMovements`, `enablePathfind`, `useShiftToPathfind` |
+| **Tooltip** | `useTooltip`, `tooltipTextHue`, `tooltipDelayBeforeDisplay`, `tooltipDisplayZoom` |
+| **Window & Layout** | `windowClientBounds`, `gameWindowSize`, `gameWindowPosition`, `windowBorderless` |
+| **Container behaviour** | `containersScale`, `doubleClickToLootInsideContainers`, `useLargeContainerGumps` |
+| **World Map** | `worldMapWidth`, `worldMapHeight`, `worldMapShowParty`, `worldMapZoomIndex` |
+| **Macro & Counter Bar** | `macros`, `counterBarEnabled`, `counterBarCellSize`, `counterBarRows` |
+
+**Partial type example:**
+
+```typescript
+interface GameProfile {
+  enableSound: boolean;            // default: true
+  soundVolume: number;             // default: 100
+  enableMusic: boolean;            // default: true
+  musicVolume: number;             // default: 100
+  speechHue: number;               // default: 690
+  defaultScale: number;            // default: 1
+  drawRoofs: boolean;              // default: true
+  alwaysRun: boolean;              // default: false
+  useTooltip: boolean;             // default: true
+  windowBorderless: boolean;       // default: true
+  gameWindowSize: { X: number; Y: number };  // default: { X: 600, Y: 480 }
+  // ... 140+ additional fields
+}
+```
+
+Profile fields used in `ShardRules.options.profileOverrides` must be valid keys of `GameProfile`. The Zod `profileOverridesSchema` is automatically derived from `profileSchema.shape`, so the type system enforces correctness at compile time.
+
+**Runtime parse example:**
+
+```typescript
+import { profileSchema } from '@classicuo/modding/types';
+
+const profile = profileSchema.parse(rawProfileObject);
+// profile is now a fully typed, default-filled GameProfile
+```
+
+---
+
+## Import Paths Summary
+
+```typescript
+// Types subpath (preferred for tree-shaking)
+import {
+  ClientManifest, clientManifestSchema,
+  SourceManifest, sourceManifestSchema
+} from '@classicuo/modding/types';
+
+import {
+  ShardRules, shardRulesSchema
+} from '@classicuo/modding/types';
+
+import {
+  Shard, shardSchema
+} from '@classicuo/modding/types';
+
+import {
+  Patch, patchSchema,
+  PatchConfig, patchConfigSchema
+} from '@classicuo/modding/types';
+
+import {
+  GameProfile, profileSchema
+} from '@classicuo/modding/types';
+
+// Main package entry (includes API exports too)
+import { ShardRules } from '@classicuo/modding';
+```
+
+---
+
+## See Also
+
+<CardGroup cols={2}>
+  <Card title="Shard Owner Overview" icon="server" href="/shard-owners/overview">
+    Learn how Shard configuration fits into the broader ClassicUO Web platform.
+  </Card>
+  <Card title="Shard Rules" icon="shield" href="/shard-owners/shard-rules">
+    Configure ShardRules to control scripting and feature availability.
+  </Card>
+  <Card title="API Reference" icon="code" href="/modding/api-reference">
+    setShardRules() and other runtime API functions.
+  </Card>
+  <Card title="Overview" icon="book" href="/modding/overview">
+    Introduction to the modding SDK architecture.
+  </Card>
+</CardGroup>

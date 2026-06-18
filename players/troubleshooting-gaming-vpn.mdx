@@ -1,0 +1,64 @@
+---
+title: "Using ExitLag and Gaming VPNs with ClassicUO Web"
+sidebarTitle: "Gaming VPNs"
+description: "Configure ExitLag or other gaming VPNs to reduce latency and fix connection issues when playing the ClassicUO Web Client in Chrome or Edge."
+---
+
+ExitLag and other gaming VPN services work with the ClassicUO Web Client. Because the game runs inside a browser rather than as a standalone executable, the setup process is slightly different from a traditional game — you add the **browser** to ExitLag instead of a game launcher. This guide walks through the full configuration and explains how to avoid routing all of your browser traffic through the VPN.
+
+<Warning>
+  Adding Chrome to ExitLag routes **all Chrome traffic** through the VPN — not just game traffic. This includes every tab you have open. If you want to keep game traffic isolated from your everyday browsing, set up a [dedicated browser](players/troubleshooting-dedicated-browser) and add that browser to ExitLag instead.
+</Warning>
+
+---
+
+## Adding Chrome to ExitLag
+
+<Steps>
+  <Step title="Open ExitLag and search for Chrome">
+    Open the ExitLag application and go to the **Home** tab. Use the search box to search for **Chrome**. Select it from the **Browser** category in the results.
+  </Step>
+  <Step title="Choose a server region">
+    Select the server region that is geographically closest to your shard's data centre. If you are unsure which region to pick, choose **Recommended** and ExitLag will select the lowest-latency route automatically.
+  </Step>
+  <Step title="Apply Routes">
+    Click the **Apply Routes** button. Wait until ExitLag confirms that routes are active before continuing — this usually takes a few seconds.
+  </Step>
+  <Step title="Start Chrome after routes are active">
+    Close Chrome completely (check the system tray to make sure no Chrome processes are running), then reopen it. ExitLag must be active with routes applied **before** Chrome starts — launching Chrome first and then applying routes will not work correctly.
+  </Step>
+  <Step title="Verify the VPN is routing game traffic">
+    The easiest way to confirm ExitLag is working is to toggle it off while you are logged into the game. If the game disconnects, ExitLag is successfully routing your traffic. Toggle it back on to reconnect.
+  </Step>
+</Steps>
+
+---
+
+## Known Issue: IPv6 Connections
+
+<Note>
+  IPv6 connections may not route correctly through ExitLag. If you continue to see high latency or connection drops after following the steps above, check whether your network is using IPv6 and try disabling it at the operating system or router level as a test.
+</Note>
+
+---
+
+## Keeping Game Traffic Separate
+
+If you use Chrome as your primary browser, adding it to ExitLag affects every website you visit while routes are active. To avoid this, use a separate browser exclusively for the game and add that browser to ExitLag instead:
+
+- **Microsoft Edge** (`msedge.exe`) — already installed on Windows; see the [dedicated browser guide](players/troubleshooting-dedicated-browser).
+- **Chrome Beta** — installs alongside your main Chrome installation without replacing it.
+
+This way, your main browser operates normally while only the dedicated game browser routes through ExitLag.
+
+---
+
+## Troubleshooting ExitLag Connection Problems
+
+If the game still has high latency or disconnects after configuring ExitLag, work through the following checks:
+
+- **Confirm routes are applied** — the ExitLag status indicator should show an active connection before you open the browser.
+- **Try a different region** — sometimes the auto-selected region is not optimal. Try the region closest to your shard's known server location.
+- **Relaunch Chrome after every route change** — ExitLag injects its routing at the network driver level; Chrome must be started fresh after any change.
+- **Check for IPv6** — as noted above, IPv6 traffic may bypass ExitLag's routing.
+- **Test without ExitLag** — if the issue also occurs without ExitLag active, the problem is with your baseline connection rather than the VPN configuration. See the [storage and download guide](players/troubleshooting-storage) for connection troubleshooting tips.
